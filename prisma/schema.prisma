@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  uid               String    @unique @default(uuid()) // UUID เป็น unique identifier
+  email             String    @unique // อีเมลจะต้องไม่ซ้ำกัน
+  username          String    // ชื่อผู้ใช้
+  password          String    // รหัสผ่าน (hashed)
+  role              String    @default("user") // ระบุบทบาทเริ่มต้นเป็น "user"
+  refreshToken      String?   // token สำหรับการรีเฟรช session
+  verificationToken String?   // token สำหรับการยืนยันอีเมล
+  isVerified        Boolean   @default(false) // แสดงสถานะการยืนยันอีเมล
+  status            String    @default("offline") // สถานะผู้ใช้ (online, offline, ban, mute)
+  lastLogin         DateTime? // เวลาที่ผู้ใช้ล็อกอินล่าสุด
+  createdAt         DateTime  @default(now()) // เวลาที่สร้างผู้ใช้
+  updatedAt         DateTime  @updatedAt // เวลาที่ปรับปรุงข้อมูลล่าสุด
+
+  @@index([email]) // สร้างดัชนีสำหรับอีเมลเพื่อเพิ่มประสิทธิภาพการค้นหา
+}
