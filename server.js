@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const passport = require('passport');
@@ -8,11 +7,9 @@ const passportConfig = require('./config/passport-config');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS config แยกตาม environment
 const corsOptions = {
     origin: process.env.NODE_ENV === 'production' 
         ? ['your-production-domain.com']  
@@ -22,13 +19,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Passport config
 passportConfig(passport);
 app.use(passport.initialize());
 
 // API Routes - ต้องอยู่ก่อน static files
 app.use('/api/auth', require('./controller/authen.controller'));
 app.use('/api', require('./controller/healthcheck.controller'));
+app.use('/api/student', require('./controller/report.controller'));
+app.use('/api/admin', require('./controller/admin/admin.controller'));
 
 // Serve static files เฉพาะใน production mode
 if (process.env.NODE_ENV === 'production') {

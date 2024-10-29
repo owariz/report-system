@@ -11,7 +11,7 @@ const verifyTurnstile = require('../lib/verifyturnstile');
 
 const router = express.Router();
 const prisma = new PrismaClient();
-const secretKey = process.env.TURNSTILE_SECRET_KEY;
+
 
 const createRefreshToken = () => crypto.randomBytes(40).toString('hex');
 
@@ -22,16 +22,17 @@ const loginLimiter = rateLimit({
 
 // Handle login
 router.post("/login", loginLimiter, async (req, res) => {
-    const { email, password, 'turnstile-response': turnstileResponse } = req.body;
-
-    const verificationResult = await verifyTurnstile(turnstileResponse, req.ip);
-    if (!verificationResult.success) {
-        return res.status(400).json({ isError: true, message: 'Turnstile verification failed' });
-    }
+    const { email, password } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        const user = await prisma.account.findUnique({ where: { email } });
+
+        if (!user) {
+            return res.status(404).json({ isError: true, message: 'User not found' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
             return res.status(401).json({ isError: true, message: 'Invalid credentials' });
         }
 
@@ -42,7 +43,7 @@ router.post("/login", loginLimiter, async (req, res) => {
         const accessToken = generateToken(user);
         const refreshToken = createRefreshToken();
 
-        await prisma.user.update({
+        await prisma.account.update({
             where: { email },
             data: { refreshToken, lastLogin: new Date(), status: 'online' },
         });
@@ -56,18 +57,13 @@ router.post("/login", loginLimiter, async (req, res) => {
 
 // Handle registration
 router.post("/register", async (req, res) => {
-    const { email, username, password, 'turnstile-response': turnstileResponse } = req.body;
+    const { email, username, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    const verificationResult = await verifyTurnstile(turnstileResponse, req.ip);
-    if (!verificationResult.success) {
-        return res.status(400).json({ isError: true, message: 'Turnstile verification failed' });
-    }
-
     try {
-        await prisma.user.create({
+        await prisma.account.create({
             data: {
                 email,
                 username,
@@ -98,12 +94,12 @@ router.get("/logout", authenticate, async (req, res) => {
             return res.status(400).json({ isError: true, message: 'Missing refresh token' });
         }
 
-        const user = await prisma.user.findUnique({ where: { uid: userId }, select: { refreshToken: true } });
+        const user = await prisma.account.findUnique({ where: { uid: userId }, select: { refreshToken: true } });
         if (!user || user.refreshToken !== refreshToken) {
             return res.status(403).json({ isError: true, message: 'Invalid refresh token' });
         }
 
-        await prisma.user.update({
+        await prisma.account.update({
             where: { uid: userId },
             data: { refreshToken: null, status: 'offline' },
         });
@@ -125,7 +121,7 @@ router.put('/status', authenticate, async (req, res) => {
     }
 
     try {
-        await prisma.user.update({
+        await prisma.account.update({
             where: { uid: req.user.uid },
             data: { status },
         });
@@ -142,13 +138,13 @@ router.get("/refresh", async (req, res) => {
     const { refreshToken } = req.query;
 
     try {
-        const user = await prisma.user.findFirst({ where: { refreshToken } });
+        const user = await prisma.account.findFirst({ where: { refreshToken } });
         if (!user) {
             return res.status(403).json({ isError: true, message: 'Invalid refresh token' });
         }
 
         const newRefreshToken = createRefreshToken();
-        await prisma.user.update({ where: { email: user.email }, data: { refreshToken: newRefreshToken } });
+        await prisma.account.update({ where: { email: user.email }, data: { refreshToken: newRefreshToken } });
 
         const accessToken = generateToken(user);
         return res.status(200).json({ accessToken, refreshToken: newRefreshToken, isVerified: user.isVerified });
@@ -167,12 +163,12 @@ router.get('/verifyemail', async (req, res) => {
     }
 
     try {
-        const user = await prisma.user.findFirst({ where: { verificationToken: token } });
+        const user = await prisma.account.findFirst({ where: { verificationToken: token } });
         if (!user) {
             return res.status(400).json({ isError: true, message: 'Invalid verification token' });
         }
 
-        await prisma.user.update({
+        await prisma.account.update({
             where: { uid: user.uid },
             data: { isVerified: true, verificationToken: null },
         });
@@ -187,7 +183,7 @@ router.get('/verifyemail', async (req, res) => {
 // Get Current User
 router.get('/@me', authenticate, async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.account.findUnique({
             where: { uid: req.user.uid },
             select: {
                 uid: true,
@@ -195,6 +191,7 @@ router.get('/@me', authenticate, async (req, res) => {
                 username: true,
                 role: true,
                 isVerified: true,
+                status: true,
                 lastLogin: true,
                 createdAt: true,
                 updatedAt: true,
