@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum accountrole {
+  SUPERADMIN    // บทบาทผู้ดูแลระบบขั้นสูง มีสิทธิ์เข้าถึงทุกฟังก์ชันของระบบและจัดการผู้ใช้ทั้งหมด
+  ADMIN         // บทบาทผู้ดูแลระบบ มีสิทธิ์จัดการฟังก์ชันหลักของระบบ เช่น การดูแลเนื้อหาและการจัดการผู้ใช้
+  DEVELOPER     // บทบาทนักพัฒนา มีสิทธิ์เข้าถึงและแก้ไขโค้ด หรือการพัฒนาระบบ โดยมักจะเป็นผู้ดูแลด้านเทคนิค
+  MODULATOR     // บทบาทผู้ดูแลเนื้อหา มีหน้าที่ตรวจสอบและอนุมัติเนื้อหาก่อนเผยแพร่ รวมถึงการจัดการการแสดงความคิดเห็น
+  MEMBER        // บทบาทสมาชิก มีสิทธิ์ใช้งานฟังก์ชันพื้นฐานของระบบ เช่น การเข้าถึงเนื้อหาและการโต้ตอบ
+  GUEST         // บทบาทผู้เยี่ยมชม มีสิทธิ์เข้าถึงข้อมูลพื้นฐานของระบบ แต่ไม่สามารถเข้าถึงฟังก์ชันที่ต้องการการลงทะเบียน
+}
+
+model account {
+  id                Int       @id @default(autoincrement())
+  uid               String    @unique @default(uuid()) // UUID เป็น unique identifier
+  email             String    @unique // อีเมลจะต้องไม่ซ้ำกัน
+  username          String    // ชื่อผู้ใช้
+  password          String    // รหัสผ่าน (hashed)
+  role              accountrole @default(MEMBER) // ระบุบทบาทเริ่มต้นเป็น "member"
+  refreshToken      String? // token สำหรับการรีเฟรช session
+  verificationToken String? // token สำหรับการยืนยันอีเมล
+  isVerified        Boolean   @default(false) // แสดงสถานะการยืนยันอีเมล
+  status            String    @default("offline") // สถานะผู้ใช้ (online, offline, ban, mute)
+  lastLogin         DateTime? // เวลาที่ผู้ใช้ล็อกอินล่าสุด
+  createdAt         DateTime  @default(now()) // เวลาที่สร้างผู้ใช้
+  updatedAt         DateTime  @updatedAt // เวลาที่ปรับปรุงข้อมูลล่าสุด
+
+  @@index([email]) // สร้างดัชนีสำหรับอีเมลเพื่อเพิ่มประสิทธิภาพการค้นหา
+}
+
+model student {
+  id          Int      @id @default(autoincrement())
+  sid         Int      @unique
+  prefix      String   // คำนำหน้า
+  firstName   String   // ชื่อ
+  lastName    String   // นามสกุล
+  nickname    String?   // ชื่อเล่น
+  email       String?   @unique // อีเมล
+  phoneNumber String?  // เบอร์โทรศัพท์
+  grade       String   // ชั้นเรียน
+  classroom   Int      // ห้องเรียน
+  status      String   // สถานะ (active, inactive)
+  scores      score[]  // ความสัมพันธ์กับคะแนนความประพฤติ
+  logs        log[]    // ความสัมพันธ์กับ log
+  createdAt   DateTime @default(now()) // เวลาที่สร้างผู้ใช้
+  updatedAt   DateTime @updatedAt // เวลาที่ปรับปรุงข้อมูลล่าสุด
+}
+
+model score {
+  id            Int      @id @default(autoincrement())
+  studentId     Int
+  reportTopic   String   // หัวข้อการรายงาน
+  reportDetail  String?   // รายละเอียดการรายงาน
+  totalScore    Int      @default(100) // คะแนนเริ่มต้นเป็น 100
+  deductedScore Int      // คะแนนที่โดนหัก
+  finalScore    Int      // คะแนนสุดท้าย (totalScore - deductedScore)
+  term          String   // เทอมที่คะแนนนี้เกี่ยวข้อง
+  comments      String?  // ความคิดเห็นเพิ่มเติม
+  createdAt     DateTime @default(now())
+
+  student       student   @relation(fields: [studentId], references: [id])
+}
+
+model log {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  action      String   // รายการที่ถูกทำ (เช่น "เพิ่มคะแนน", "แก้ไขคะแนน", "ลบคะแนน")
+  details     String   // รายละเอียดเพิ่มเติม
+  username    String   // ชื่อผู้ใช้ที่ทำการกระทำ
+  email       String   // อีเมลของผู้ใช้ที่ทำการกระทำ
+  timestamp   DateTime @default(now()) // เวลาที่กระทำ
+  ipAddress   String?  // IP Address ของผู้กระทำ
+
+  student     student   @relation(fields: [studentId], references: [id])
+}
