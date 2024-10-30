@@ -25,7 +25,11 @@ export default function Dashboard() {
   useEffect(() => {
       const fetchData = async () => {
           try {
-              const response = await fetch('http://localhost:4000/api/admin/dashboard');
+              const response = await fetch('http://localhost:4000/api/admin/dashboard', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+              });
               const result = await response.json();
               if (!result.isError) {
                   setData(result.result);

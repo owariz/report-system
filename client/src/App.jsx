@@ -13,6 +13,7 @@ import RootLayout from "./components/RootLayout";
 import Users from "./pages/users";
 import Reports from "./pages/reports";
 import AddJson from "./pages/dev/AddJson";
+import Verifyemail from "./pages/auth/verify-email";
 
 const Axios = axios.create({
   baseURL: "http://localhost:4000/api",
@@ -91,6 +92,7 @@ const App = () => {
           <Route path="/users" element={!isLoggedIn ? <Login /> : <Users />} />
           <Route path="/reports" element={!isLoggedIn ? <Login /> : <Reports />} />
           <Route path="/add/json" element={!isLoggedIn ? <Login /> : <AddJson />} />
+          <Route path="/auth/verify-email" element={<Verifyemail />} />
           <Route path="/auth/login" element={<Login />} />
           <Route path="*" element={<Notfound />} />
         </Routes>

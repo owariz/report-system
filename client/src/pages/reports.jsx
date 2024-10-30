@@ -14,7 +14,11 @@ export default function Report() {
     useEffect(() => {
         const fetchReportData = async () => {
             try {
-                const response = await axios.get('http://localhost:4000/api/admin/report');
+                const response = await axios.get('http://localhost:4000/api/admin/report', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                });
                 setReportData(response.data.result.reportData);
                 setUsageData(response.data.result.usageData);
             } catch (error) {
