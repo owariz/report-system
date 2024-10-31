@@ -1,8 +1,8 @@
 import { useState } from "react";
-import axios from 'axios';
 import { Layout, Button, message, Card, Typography, Modal, Form, Select, Space, Alert } from "antd";
 import { Input } from 'antd';
 import { LoadingOutlined, SearchOutlined } from "@ant-design/icons";
+import api from "../lib/api";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -93,7 +93,7 @@ export default function Home() {
     }
 
     try {
-      const res = await axios.get(`http://localhost:4000/api/student/${sid}`);
+      const res = await api.get(`/student/${sid}`);
       setStudentData(res.data.result);
       setErrorMessage('');
     } catch (error) {
@@ -123,7 +123,7 @@ export default function Home() {
     };
 
     try {
-      await axios.post('http://localhost:4000/api/student/report', reportData);
+      await api.post('/student/report', reportData);
       message.success('ส่งรายงานเรียบร้อยแล้ว');
       setIsModalVisible(false);
     } catch (error) {

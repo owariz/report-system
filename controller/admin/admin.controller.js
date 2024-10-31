@@ -214,7 +214,13 @@ router.put('/edit/account/:uid', authenticate, async (req, res) => {
     const { username, password, email, role, isVerified } = req.body;
 
     const transaction = await prisma.$transaction(async (prisma) => {
-        const account = await prisma.account.findUnique({ where: { uid } });
+        const account = await prisma.account.findUnique({
+            where: { uid },
+            select: {
+                uid: true,
+                email: true,
+            },
+        });
         if (!account) return res.status(404).json({ isError: true, message: 'Account not found' });
 
         if (email && email !== account.email) {
@@ -223,6 +229,7 @@ router.put('/edit/account/:uid', authenticate, async (req, res) => {
         }
 
         const hashedPassword = password ? await bcrypt.hash(password, 12) : account.password;
+        const verificationToken = crypto.randomBytes(32).toString('hex');
 
         const updatedAccount = await prisma.account.update({
             where: { uid },
@@ -232,10 +239,15 @@ router.put('/edit/account/:uid', authenticate, async (req, res) => {
                 email,
                 role,
                 isVerified,
+                verificationToken,
             },
         });
 
         if (updatedAccount.email !== account.email) {
+            await sendVerificationEmail(updatedAccount.email, updatedAccount.verificationToken);
+        }
+
+        if (updatedAccount.isVerified === false && account.isVerified === true) {
             await sendVerificationEmail(updatedAccount.email, updatedAccount.verificationToken);
         }
 

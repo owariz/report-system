@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Table, Typography, Row, Col, Card, Button, Modal, Empty } from 'antd';
 import { Line } from 'react-chartjs-2';
+import api from '../lib/api';
 
 const { Title } = Typography;
 
@@ -14,11 +14,7 @@ export default function Report() {
     useEffect(() => {
         const fetchReportData = async () => {
             try {
-                const response = await axios.get('http://localhost:4000/api/admin/report', {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                    },
-                });
+                const response = await api.get('/admin/report');
                 setReportData(response.data.result.reportData);
                 setUsageData(response.data.result.usageData);
             } catch (error) {

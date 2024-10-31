@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Button, Input, Space, Alert, Card, Typography } from "antd";
 import { UserOutlined, LockOutlined, LoadingOutlined } from '@ant-design/icons';
+
+import api from '../../lib/api';
 
 const { Title } = Typography;
 
@@ -41,7 +42,7 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4000/api/auth/login', {
+            const response = await api.post('/auth/login', {
                 email,
                 password,
             });

@@ -11,7 +11,8 @@ import {
   Select,
   Checkbox,
 } from "antd";
-import axios from "axios";
+
+import api from "../lib/api";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -24,14 +25,7 @@ export default function Users() {
 
   const loadUsers = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:4000/api/admin/account",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
+      const response = await api.get("/admin/account");
 
       setUsers(response.data.result);
     } catch (error) {
@@ -46,7 +40,7 @@ export default function Users() {
 
   const showModal = (user) => {
     setEditingUser(user);
-    form.setFieldsValue(user || { isVerified: false }); // เพิ่มค่าเริ่มต้นให้กับ isVerified
+    form.setFieldsValue(user || { isVerified: false });
     setIsModalVisible(true);
   };
 
@@ -60,22 +54,12 @@ export default function Users() {
     try {
       const updatedUser = { ...editingUser, ...values };
 
-      // ตรวจสอบว่ามีการกรอกรหัสผ่านหรือไม่
       if (!values.password) {
-        delete updatedUser.password; // ถ้ารหัสผ่านไม่ถูกกรอก ให้ลบฟิลด์รหัสผ่าน
+        delete updatedUser.password;
       }
 
       if (editingUser) {
-        // แก้ไขข้อมูลผู้ใช้
-        await axios.put(
-          `http://localhost:4000/api/admin/edit/account/${editingUser.uid}`,
-          updatedUser,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }
-        );
+        await api.put(`/admin/edit/account/${editingUser.uid}`, updatedUser);
 
         setUsers(
           users.map((user) =>
@@ -84,37 +68,22 @@ export default function Users() {
         );
         message.success("แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว");
       } else {
-        // เพิ่มผู้ใช้ใหม่
-        const response = await axios.post(
-          "http://localhost:4000/api/admin/add/account",
-          updatedUser,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          }
-        );
-        setUsers([...users, response.data]);
+        await api.post("/admin/add/account", updatedUser);
         message.success("เพิ่มผู้ใช้ใหม่เรียบร้อยแล้ว");
+
+        loadUsers();
       }
     } catch (error) {
       console.error("Error:", error);
       message.error("เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้");
     } finally {
-      handleCancel(); // เคลียร์ข้อมูลทั้งหมด
+      handleCancel();
     }
   };
 
   const handleDelete = async (uid) => {
     try {
-      await axios.delete(
-        `http://localhost:4000/api/admin/delete/account/${uid}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
+      await api.delete(`/admin/delete/account/${uid}`);
       setUsers(users.filter((user) => user.uid !== uid));
       message.success("ลบผู้ใช้เรียบร้อยแล้ว");
     } catch (error) {

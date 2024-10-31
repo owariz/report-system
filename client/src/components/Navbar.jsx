@@ -1,16 +1,20 @@
-import PropTypes from 'prop-types';
-
 import { Card, Typography, Flex, Button, Dropdown, Space } from "antd";
 import { SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from "react-router-dom";
+import api from "../lib/api";
 
 const { Title } = Typography;
 
-export default function Navbar({ profile }) {
+export default function Navbar() {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+    const refreshToken = localStorage.getItem("refreshToken");
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await api.get(`/auth/logout?refreshToken=${refreshToken}`);
+        localStorage.removeItem("username");
+        localStorage.removeItem("email");
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
@@ -20,7 +24,7 @@ export default function Navbar({ profile }) {
     const items = [
         {
           key: '1',
-          label: profile?.email ?? "Email",
+          label: email,
           disabled: true,
         },
         {
@@ -64,10 +68,3 @@ export default function Navbar({ profile }) {
         </Card>
     );
 }
-
-Navbar.propTypes = {
-    profile: PropTypes.shape({
-        email: PropTypes.string,
-        role: PropTypes.string,
-    }),
-};

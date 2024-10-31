@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { message as antdMessage, Spin, Typography } from 'antd';
+
+import api from '../../lib/api';
 
 const { Text } = Typography;
 
@@ -23,7 +24,7 @@ export default function VerifyEmail() {
         }
 
         try {
-            const response = await axios.get(`http://localhost:4000/api/auth/verifyemail?token=${token}`);
+            const response = await api.get(`/auth/verifyemail?token=${token}`);
             if (response.status === 200) {
                 antdMessage.success('ยืนยันอีเมลสำเร็จแล้ว!');
                 setIsLoading(false);
