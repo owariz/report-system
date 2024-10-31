@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
 
 import { Alert } from "antd";
 
@@ -13,10 +12,9 @@ import RootLayout from "./components/RootLayout";
 import Users from "./pages/users";
 import Reports from "./pages/reports";
 import AddJson from "./pages/dev/AddJson";
-
-const Axios = axios.create({
-  baseURL: "http://localhost:4000/api",
-});
+import Verifyemail from "./pages/auth/verify-email";
+import Healthcheck from "./pages/healthcheck";
+import api from "./lib/api";
 
 const App = () => {
   const [profile, setProfile] = useState(null);
@@ -33,42 +31,21 @@ const App = () => {
       return;
     }
 
-    Axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
     try {
-      const response = await Axios.get("/auth/@me");
+      const response = await api.get("/auth/@me");
       setProfile(response.data.result);
       setIsVerified(response.data.result.isVerified);
       localStorage.setItem('username', response.data.result.username);
       localStorage.setItem('email', response.data.result.email);
     } catch (error) {
-      if (error.response?.status === 401) {
-        await refreshAccessToken(refreshToken);
-      } else {
-        console.error("Error:", error.response?.data || error);
-        clearLocalStorage();
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const refreshAccessToken = async (refreshToken) => {
-    try {
-      const response = await Axios.get("/auth/refresh", {
-        params: { refreshToken },
-      });
-      localStorage.setItem("isLoggedIn", true);
-      localStorage.setItem("accessToken", response.data.accessToken);
-      localStorage.setItem("refreshToken", response.data.refreshToken);
-      await checkToken();
-    } catch (refreshError) {
-      console.error("Refresh token error:", refreshError.response?.data || refreshError);
+      console.error("Error:", error.response?.data || error);
       clearLocalStorage();
     }
-  };
+  }, []);
 
   const clearLocalStorage = () => {
     localStorage.removeItem("username");
+    localStorage.removeItem("email");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -91,7 +68,9 @@ const App = () => {
           <Route path="/users" element={!isLoggedIn ? <Login /> : <Users />} />
           <Route path="/reports" element={!isLoggedIn ? <Login /> : <Reports />} />
           <Route path="/add/json" element={!isLoggedIn ? <Login /> : <AddJson />} />
+          <Route path="/auth/verify-email" element={<Verifyemail />} />
           <Route path="/auth/login" element={<Login />} />
+          <Route path="/healthcheck" element={<Healthcheck />} />
           <Route path="*" element={<Notfound />} />
         </Routes>
       </RootLayout>

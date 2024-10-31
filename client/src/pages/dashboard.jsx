@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import api from '../lib/api';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -23,21 +24,20 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              const response = await fetch('http://localhost:4000/api/admin/dashboard');
-              const result = await response.json();
-              if (!result.isError) {
-                  setData(result.result);
-              } else {
-                  console.error(result.message);
-              }
-          } catch (error) {
-              console.error('Error fetching data:', error);
-          }
-      };
+    const fetchData = async () => {
+      try {
+        const response = await api.get('/admin/dashboard');
+        if (!response.data.isError) {
+          setData(response.data.result);
+        } else {
+          console.error(response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
-      fetchData();
+    fetchData();
   }, []);
 
   return (

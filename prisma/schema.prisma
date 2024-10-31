@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -75,13 +69,13 @@ model score {
 
 model log {
   id          Int      @id @default(autoincrement())
-  studentId   Int
-  action      String   // รายการที่ถูกทำ (เช่น "เพิ่มคะแนน", "แก้ไขคะแนน", "ลบคะแนน")
+  studentId   Int?     // ทำให้เป็น optional (nullable)
+  action      String   // รายการที่ถูกทำ (เช่น "สร้างบัญชีผู้ใช้")
   details     String   // รายละเอียดเพิ่มเติม
   username    String   // ชื่อผู้ใช้ที่ทำการกระทำ
   email       String   // อีเมลของผู้ใช้ที่ทำการกระทำ
   timestamp   DateTime @default(now()) // เวลาที่กระทำ
-  ipAddress   String?  // IP Address ของผู้กระทำ
+  ipAddress   String?  // IP Address ของผู้กระทำ (optional)
 
-  student     student   @relation(fields: [studentId], references: [id])
+  student     student?  @relation(fields: [studentId], references: [id]) // ทำให้การเชื่อมโยงกับ student เป็น optional
 }
