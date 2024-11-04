@@ -14,7 +14,7 @@ router.get('/dashboard', authenticate, async (req, res) => {
     try {
         const today = new Date();
         const threeDaysAgo = new Date(today);
-        threeDaysAgo.setDate(today.getDate() - 1);
+        threeDaysAgo.setDate(today.getDate() - 3); // Corrected to subtract 3 days
 
         const students = await prisma.student.findMany({
             where: { status: 'active' },
@@ -22,6 +22,9 @@ router.get('/dashboard', authenticate, async (req, res) => {
                 scores: {
                     select: {
                         totalScore: true,
+                        finalScore: true,
+                        deductedScore: true,
+                        createdAt: true,
                     }
                 }
             },
@@ -30,13 +33,60 @@ router.get('/dashboard', authenticate, async (req, res) => {
         const newStudentsCount = students.filter(student => new Date(student.createdAt) >= threeDaysAgo).length;
         const totalStudentsCount = students.length;
 
-        const validScores = students.flatMap(student => 
-            student.scores.map(score => score.totalScore).filter(score => score >= 0 && score <= 100)
+        const validScores = students.flatMap(student =>
+            student.scores.map(score => score.finalScore).filter(score => score >= 0 && score <= 100)
         );
 
         const totalScore = validScores.reduce((sum, score) => sum + score, 0);
         const averageScore = validScores.length > 0 ? totalScore / validScores.length : null;
         const maxScore = validScores.length > 0 ? Math.max(...validScores) : null;
+
+        // Prepare data for the graph
+        const scoreData = students.flatMap(student =>
+            student.scores.map(score => ({
+                date: score.createdAt,
+                finalScore: score.finalScore,
+            }))
+        );
+
+        // Group scores by date
+        const groupedScores = scoreData.reduce((acc, { date, finalScore }) => {
+            const dateString = date.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+            if (!acc[dateString]) {
+                acc[dateString] = [];
+            }
+            acc[dateString].push(finalScore);
+            return acc;
+        }, {});
+
+        // Calculate average and max scores per day
+        const dates = Object.keys(groupedScores).sort();
+        const averageScores = dates.map(date => {
+            const scores = groupedScores[date];
+            const total = scores.reduce((sum, score) => sum + score, 0);
+            return total / scores.length;
+        });
+        const maxScores = dates.map(date => Math.max(...groupedScores[date]));
+
+        // Calculate score distribution
+        const scoreDistribution = [0, 0, 0, 0, 0];
+        validScores.forEach(score => {
+            if (score <= 20) scoreDistribution[0]++;
+            else if (score <= 40) scoreDistribution[1]++;
+            else if (score <= 60) scoreDistribution[2]++;
+            else if (score <= 80) scoreDistribution[3]++;
+            else scoreDistribution[4]++;
+        });
+
+        // Get students with the most deducted points
+        const studentsWithMostDeductedPoints = students
+            .map(student => ({
+                sid: student.sid,
+                name: `${student.prefix} ${student.firstName} ${student.lastName}`,
+                deductedPoints: student.scores.reduce((sum, score) => sum + (score.deductedScore || 0), 0),
+            }))
+            .sort((a, b) => b.deductedPoints - a.deductedPoints)
+            .slice(0, 5);
 
         return res.status(200).json({
             isError: false,
@@ -45,6 +95,11 @@ router.get('/dashboard', authenticate, async (req, res) => {
                 maxScore,
                 newStudentsCount,
                 totalStudentsCount,
+                dates,
+                averageScores,
+                maxScores,
+                scoreDistribution,
+                studentsWithMostDeductedPoints,
             }
         });
     } catch (error) {
