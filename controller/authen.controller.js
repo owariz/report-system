@@ -20,7 +20,15 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await prisma.account.findUnique({ where: { email } });
+        const user = await prisma.account.findUnique({
+            where: { email },
+            select: {
+                uid: true,
+                email: true,
+                password: true,
+                isVerified: true
+            }
+        });
 
         if (!user) {
             return res.status(404).json({ isError: true, message: 'User not found' });

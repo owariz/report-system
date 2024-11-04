@@ -194,6 +194,9 @@ export default function Home() {
               <Typography.Paragraph>
                 <strong>สถานะ:</strong> <span>{studentData.status}</span>
               </Typography.Paragraph>
+              <Typography.Paragraph>
+                <strong>คะแนน:</strong> <span>{studentData.latestScore}</span>
+              </Typography.Paragraph>
               <Button type="primary" onClick={() => setIsModalVisible(true)}>
                 รายงานนักศึกษา
               </Button>
