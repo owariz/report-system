@@ -6,17 +6,25 @@ const prisma = new PrismaClient();
 
 router.get('/:sid', async (req, res) => {
     const { sid } = req.params;
-    
+
     try {
         const student = await prisma.student.findUnique({
             where: { sid: Number(sid) },
-        })
-
+            include: {
+                scores: {
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+                    take: 1,
+                },
+            },
+        });
         if (!student) return res.status(404).json({ isError: true, message: 'student not found' });
 
-        console.log(sid)
+        const latestScore = student.scores.length > 0 ? student.scores[0].finalScore : 100;
 
-        return res.status(200).json({ isError: true, message: 'ok', result: student });
+        console.log(sid);
+        return res.status(200).json({ isError: false, message: 'ok', result: { ...student, latestScore } });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ isError: true, message: 'An error occurred' });

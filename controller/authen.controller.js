@@ -15,17 +15,20 @@ const prisma = new PrismaClient();
 
 const createRefreshToken = () => crypto.randomBytes(40).toString('hex');
 
-const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 นาที
-    max: 5, // จำกัดการเข้าสู่ระบบ 5 ครั้ง
-});
-
 // Handle login
-router.post("/login", loginLimiter, async (req, res) => {
+router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await prisma.account.findUnique({ where: { email } });
+        const user = await prisma.account.findUnique({
+            where: { email },
+            select: {
+                uid: true,
+                email: true,
+                password: true,
+                isVerified: true
+            }
+        });
 
         if (!user) {
             return res.status(404).json({ isError: true, message: 'User not found' });
