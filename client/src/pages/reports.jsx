@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Table, Typography, Row, Col, Card, Button, Modal, Empty } from 'antd';
-import { Line } from 'react-chartjs-2';
 import api from '../lib/api';
 
 const { Title } = Typography;
@@ -103,7 +102,7 @@ export default function Report() {
                         <p><strong>วันที่:</strong> {selectedReportDetail.date}</p>
                         <p><strong>คะแนน:</strong> {selectedReportDetail.score}</p>
                         <p><strong>คะแนนที่โดนหัก:</strong> {selectedReportDetail.deductedScore}</p>
-                        <p><strong>คะแนนสุดท้าย:</strong> {selectedReportDetail.finalScore}</p>
+                        <p><strong>คะแนนที่เหลืออยู่:</strong> {selectedReportDetail.finalScore}</p>
                         <p><strong>รายละเอียดการรายงาน:</strong> {selectedReportDetail.reportDetail}</p>
                     </div>
                 )}
