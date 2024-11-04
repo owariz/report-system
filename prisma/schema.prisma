@@ -17,19 +17,20 @@ enum accountrole {
 }
 
 model account {
-  id                Int       @id @default(autoincrement())
-  uid               String    @unique @default(uuid()) // UUID เป็น unique identifier
-  email             String    @unique // อีเมลจะต้องไม่ซ้ำกัน
-  username          String    // ชื่อผู้ใช้
-  password          String    // รหัสผ่าน (hashed)
-  role              accountrole @default(MEMBER) // ระบุบทบาทเริ่มต้นเป็น "member"
-  refreshToken      String? // token สำหรับการรีเฟรช session
-  verificationToken String? // token สำหรับการยืนยันอีเมล
-  isVerified        Boolean   @default(false) // แสดงสถานะการยืนยันอีเมล
-  status            String    @default("offline") // สถานะผู้ใช้ (online, offline, ban, mute)
-  lastLogin         DateTime? // เวลาที่ผู้ใช้ล็อกอินล่าสุด
-  createdAt         DateTime  @default(now()) // เวลาที่สร้างผู้ใช้
-  updatedAt         DateTime  @updatedAt // เวลาที่ปรับปรุงข้อมูลล่าสุด
+  id                Int               @id @default(autoincrement())
+  uid               String            @unique @default(uuid()) // UUID เป็น unique identifier
+  email             String            @unique // อีเมลจะต้องไม่ซ้ำกัน
+  username          String            // ชื่อผู้ใช้
+  password          String            // รหัสผ่าน (hashed)
+  role              accountrole       @default(MEMBER) // ระบุบทบาทเริ่มต้นเป็น "member"
+  refreshToken      String?           // token สำหรับการรีเฟรช session
+  verificationToken String?           // token สำหรับการยืนยันอีเมล
+  isVerified        Boolean           @default(false) // แสดงสถานะการยืนยันอีเมล
+  status            String            @default("offline") // สถานะผู้ใช้ (online, offline, ban, mute)
+  lastLogin         DateTime?         // เวลาที่ผู้ใช้ล็อกอินล่าสุด
+  createdAt         DateTime          @default(now()) // เวลาที่สร้างผู้ใช้
+  updatedAt         DateTime          @updatedAt // เวลาที่ปรับปรุงข้อมูลล่าสุด
+  announcements     announcement[]    // ความสัมพันธ์แบบหลายรายการกับประกาศ
 
   @@index([email]) // สร้างดัชนีสำหรับอีเมลเพื่อเพิ่มประสิทธิภาพการค้นหา
 }
@@ -78,4 +79,20 @@ model log {
   ipAddress   String?  // IP Address ของผู้กระทำ (optional)
 
   student     student?  @relation(fields: [studentId], references: [id]) // ทำให้การเชื่อมโยงกับ student เป็น optional
+}
+
+model announcement {
+  id          Int       @id @default(autoincrement())
+  title       String    // หัวข้อของประกาศ
+  content     String    // เนื้อหาของประกาศ
+  authorId    Int       // ผู้เขียนประกาศ
+  visibility  String    @default("public") // ระดับการเข้าถึง (public, internal, private)
+  createdAt   DateTime  @default(now()) // เวลาที่สร้างประกาศ
+  updatedAt   DateTime  @updatedAt // เวลาที่ปรับปรุงประกาศล่าสุด
+  publishDate DateTime? // วันที่เผยแพร่ (สามารถเป็น null ได้)
+  status      String    @default("draft") // สถานะของประกาศ (draft, published, archived)
+
+  author      account   @relation(fields: [authorId], references: [id]) // ความสัมพันธ์กับ account ของผู้เขียน
+
+  @@index([authorId]) // สร้างดัชนีสำหรับผู้เขียนเพื่อเพิ่มประสิทธิภาพการค้นหา
 }
