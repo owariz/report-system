@@ -76,10 +76,11 @@ export default function Dashboard() {
         if (!response.data.isError) {
           setData(response.data.result);
 
-          // Assuming the response contains historical data for the chart
-          const labels = response.data.result.dates; // Array of dates
-          const averageScores = response.data.result.averageScores; // Array of average scores
-          const maxScores = response.data.result.maxScores; // Array of max scores
+          const labels = response.data.result.dates;
+          const averageScores = response.data.result.averageScores;
+          const maxScores = response.data.result.maxScores;
+
+          console.log(labels, averageScores, maxScores);
 
           setChartData({
             labels,
@@ -99,8 +100,7 @@ export default function Dashboard() {
             ],
           });
 
-          // Assuming the response contains score distribution data
-          const scoreDistribution = response.data.result.scoreDistribution; // Array of score distribution counts
+          const scoreDistribution = response.data.result.scoreDistribution;
           setScoreDistributionData(prevData => ({
             ...prevData,
             datasets: [

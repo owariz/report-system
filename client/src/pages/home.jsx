@@ -1,25 +1,43 @@
 import { useState } from "react";
-import { Layout, Button, message, Card, Typography, Modal, Form, Select, Space, Alert } from "antd";
-import { Input } from 'antd';
+import { Layout, Button, message, Card, Typography, Modal, Form, Select, Space, Alert, Input } from "antd";
 import { LoadingOutlined, SearchOutlined } from "@ant-design/icons";
 import api from "../lib/api";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
+
+const deductedScores = {
+  "แต่งกายผิดระเบียบ": 5,
+  "ทรงผมผิดระเบียบ": 5,
+  "ไม่คล้องบัตรประจำตัว": 5,
+  "หนีเรียน": 5,
+  "เสพยาเสพติด": 30,
+  "การพนัน": 30,
+  "ทะเลาะวิวาท": 50,
+};
 
 const ReportModal = ({ visible, onCancel, onSubmit, loading }) => {
   const [form] = Form.useForm();
   const [reportTopic, setReportTopic] = useState('');
+  const [deductedScore, setDeductedScore] = useState(null);
 
   const handleFinish = (values) => {
     const reportData = {
       reportTopic: reportTopic === "อื่น ๆ" ? values.customReportTopic : reportTopic,
       reportDetail: values.reportDetail,
-      deductedScore: values.deductedScore,
+      deductedScore: reportTopic === "อื่น ๆ" ? values.deductedScore : deductedScore,
     };
     onSubmit(reportData);
     form.resetFields();
-    setReportTopic(''); // Reset selected topic
+    setReportTopic('');
+    setDeductedScore(null);
+  };
+
+  const handleReportTopicChange = (value) => {
+    setReportTopic(value);
+    const score = deductedScores[value] || null;
+    setDeductedScore(score);
+    form.setFieldsValue({ deductedScore: score });
   };
 
   return (
@@ -35,13 +53,23 @@ const ReportModal = ({ visible, onCancel, onSubmit, loading }) => {
           label="หัวข้อการรายงาน"
           rules={[{ required: true, message: 'กรุณาเลือกหัวข้อการรายงาน' }]}
         >
-          <Select placeholder="เลือกหัวข้อการรายงาน" onChange={setReportTopic}>
-            <Option value="ผิดกฎ">ผิดกฎ</Option>
-            <Option value="มีพฤติกรรมไม่เหมาะสม">มีพฤติกรรมไม่เหมาะสม</Option>
-            <Option value="ขาดเรียน">ขาดเรียน</Option>
+          <Select placeholder="เลือกหัวข้อการรายงาน" onChange={handleReportTopicChange}>
+            {Object.keys(deductedScores).map((topic) => (
+              <Option key={topic} value={topic}>{topic}</Option>
+            ))}
             <Option value="อื่น ๆ">อื่น ๆ</Option>
           </Select>
         </Form.Item>
+
+        {reportTopic && reportTopic !== "อื่น ๆ" && (
+          <Alert
+            className="mb-5"
+            message={`คะแนนที่จะหัก: ${deductedScore} คะแนน`}
+            type="info"
+            showIcon
+          />
+        )}
+
         {reportTopic === "อื่น ๆ" && (
           <Form.Item
             name="customReportTopic"
@@ -51,23 +79,32 @@ const ReportModal = ({ visible, onCancel, onSubmit, loading }) => {
             <Input placeholder="กรอกหัวข้อที่ต้องการ" />
           </Form.Item>
         )}
-        <Form.Item
-          name="reportDetail"
-          label="รายละเอียดการรายงาน"
-          rules={[{ required: true, message: 'กรุณากรอกรายละเอียดการรายงาน' }]}
-        >
-          <Input.TextArea rows={4} />
-        </Form.Item>
+
         <Form.Item
           name="deductedScore"
           label="คะแนนที่ต้องการหัก"
           rules={[{ required: true, message: 'กรุณากรอกคะแนนที่ต้องการหัก' }]}
         >
-          <Input type="number" placeholder="กรอกคะแนนที่ต้องการหัก" />
+          <Input
+            type="number"
+            placeholder="กรอกคะแนนที่ต้องการหัก"
+            value={deductedScore ?? ''}
+            onChange={(e) => setDeductedScore(e.target.value)}
+            disabled={reportTopic !== "อื่น ๆ"} // Lock input unless "อื่น ๆ" is selected
+          />
         </Form.Item>
+
+        <Form.Item
+          name="reportDetail"
+          label="รายละเอียดการรายงาน"
+          rules={[{ required: false, message: 'กรุณากรอกรายละเอียดการรายงาน' }]}
+        >
+          <Input.TextArea rows={4} />
+        </Form.Item>
+
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading}>
-            ส่งรายงาน
+            บันทึก
           </Button>
         </Form.Item>
       </Form>
@@ -103,7 +140,7 @@ export default function Home() {
       } else {
         console.error(error);
         setErrorMessage('เกิดข้อผิดพลาดในการค้นหา');
-        message.error("เกิดข้อผิดพลาดในการค้นหา");
+        message.error(error.message);
       }
     } finally {
       setLoading(false);

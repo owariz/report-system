@@ -36,6 +36,11 @@ export default function Report() {
             key: 'username',
         },
         {
+            title: 'หัวข้อการรายงาน',
+            dataIndex: 'reportTopic',
+            key: 'reportTopic',
+        },
+        {
             title: 'คะแนนที่โดนหัก',
             dataIndex: 'deductedScore',
             key: 'deductedScore',
@@ -73,12 +78,6 @@ export default function Report() {
             <Title level={2}>รายงานผลการดำเนินงาน</Title>
 
             <Row gutter={16}>
-                {/* <Col xs={24} md={24}>
-                    <Card title="กราฟการใช้งาน" size="small">
-                        <Line data={usageData} />
-                    </Card>
-                </Col> */}
-
                 <Col xs={24} md={24}>
                     <Card title="ข้อมูลคะแนนผู้ใช้" size="small">
                         {reportData.length > 0 ? (
@@ -100,7 +99,7 @@ export default function Report() {
                     <div>
                         <p><strong>ชื่อผู้ใช้:</strong> {selectedReportDetail.username}</p>
                         <p><strong>วันที่:</strong> {selectedReportDetail.date}</p>
-                        <p><strong>คะแนน:</strong> {selectedReportDetail.score}</p>
+                        <p><strong>หัวข้อการรายงาน:</strong> {selectedReportDetail.reportTopic}</p>
                         <p><strong>คะแนนที่โดนหัก:</strong> {selectedReportDetail.deductedScore}</p>
                         <p><strong>คะแนนที่เหลืออยู่:</strong> {selectedReportDetail.finalScore}</p>
                         <p><strong>รายละเอียดการรายงาน:</strong> {selectedReportDetail.reportDetail}</p>
