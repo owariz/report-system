@@ -171,6 +171,7 @@ export default function Home() {
       // รีโหลดข้อมูลนักศึกษาใหม่
       // const updatedData = await api.get(`/student/${studentData.sid}`);
       setStudentData(null);
+      setSid(null);
     } catch (error) {
       console.error(error);
       message.error('เกิดข้อผิดพลาดในการส่งรายงาน');
