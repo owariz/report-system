@@ -40,11 +40,16 @@ const ReportModal = ({ visible, onCancel, onSubmit, loading }) => {
     form.setFieldsValue({ deductedScore: score });
   };
 
+  const handleCancel = () => {
+    form.resetFields(); // รีเซ็ตฟอร์มเมื่อปิด Modal
+    onCancel();
+  };
+
   return (
     <Modal
       title="รายงานนักศึกษา"
       visible={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       footer={null}
     >
       <Form form={form} onFinish={handleFinish}>
@@ -149,7 +154,7 @@ export default function Home() {
 
   const handleReportSubmit = async (values) => {
     setLoading(true);
-    
+  
     const reportData = {
       studentId: studentData.id,
       reportTopic: values.reportTopic,
@@ -158,11 +163,14 @@ export default function Home() {
       username: localStorage.getItem('username'),
       email: localStorage.getItem('email'),
     };
-
+  
     try {
       await api.post('/student/report', reportData);
       message.success('ส่งรายงานเรียบร้อยแล้ว');
       setIsModalVisible(false);
+      // รีโหลดข้อมูลนักศึกษาใหม่
+      // const updatedData = await api.get(`/student/${studentData.sid}`);
+      setStudentData(null);
     } catch (error) {
       console.error(error);
       message.error('เกิดข้อผิดพลาดในการส่งรายงาน');
@@ -235,7 +243,7 @@ export default function Home() {
                 <strong>คะแนน:</strong> <span>{studentData.latestScore}</span>
               </Typography.Paragraph>
               <Button type="primary" onClick={() => setIsModalVisible(true)}>
-                รายงานนักศึกษา
+                บันทึกพฤติกรรมนักศึกษา
               </Button>
             </Card>
           )}

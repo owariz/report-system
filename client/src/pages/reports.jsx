@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react';
-import { Table, Typography, Row, Col, Card, Button, Modal, Empty } from 'antd';
+import { Table, Typography, Row, Col, Card, Empty, message } from 'antd';
 import api from '../lib/api';
 
 const { Title } = Typography;
 
 export default function Report() {
     const [reportData, setReportData] = useState([]);
-    const [usageData, setUsageData] = useState({ labels: [], datasets: [] });
-    const [selectedReportDetail, setSelectedReportDetail] = useState(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Global fetch function for report data
+    const fetchReportData = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/admin/report');
+            setReportData(response.data.result.reportData);
+        } catch (error) {
+            console.error('Error fetching report data:', error);
+            message.error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchReportData = async () => {
-            try {
-                const response = await api.get('/admin/report');
-                setReportData(response.data.result.reportData);
-                setUsageData(response.data.result.usageData);
-            } catch (error) {
-                console.error('Error fetching report data:', error);
-            }
-        };
-
         fetchReportData();
     }, []);
 
@@ -31,7 +33,7 @@ export default function Report() {
             key: 'date',
         },
         {
-            title: 'ชื่อผู้ใช้',
+            title: 'ชื่อนักศึกษา',
             dataIndex: 'username',
             key: 'username',
         },
@@ -52,26 +54,20 @@ export default function Report() {
             key: 'finalScore',
         },
         {
-            title: 'รายละเอียดการรายงาน',
-            dataIndex: 'reportDetail',
-            key: 'reportDetail',
+            title: 'ข้อมูลผู้กระทำการ',
+            key: 'logDetails',
             render: (_, record) => (
-                <Button color="default" variant="dashed" onClick={() => showDetail(record)}>
-                    ดูรายละเอียด
-                </Button>
+                record.logDetails ? (
+                    <div>
+                        <p><strong>ผู้ใช้:</strong> {record.logDetails.username}</p>
+                        <p><strong>อีเมล:</strong> {record.logDetails.email}</p>
+                    </div>
+                ) : (
+                    <span>ไม่มีข้อมูล</span>
+                )
             ),
-        },
+        }
     ];
-
-    const showDetail = (record) => {
-        setSelectedReportDetail(record);
-        setIsModalVisible(true);
-    };
-
-    const handleModalClose = () => {
-        setIsModalVisible(false);
-        setSelectedReportDetail(null);
-    };
 
     return (
         <div style={{ padding: '20px' }}>
@@ -81,31 +77,18 @@ export default function Report() {
                 <Col xs={24} md={24}>
                     <Card title="ข้อมูลคะแนนผู้ใช้" size="small">
                         {reportData.length > 0 ? (
-                            <Table columns={columns} dataSource={reportData} pagination={{ pageSize: 10 }} />
+                            <Table
+                                columns={columns}
+                                dataSource={reportData}
+                                pagination={{ pageSize: 10 }}
+                                loading={loading}
+                            />
                         ) : (
                             <Empty description="ไม่มีข้อมูลคะแนน" />
                         )}
                     </Card>
                 </Col>
             </Row>
-
-            <Modal
-                title="รายละเอียดการรายงาน"
-                visible={isModalVisible}
-                onCancel={handleModalClose}
-                footer={null}
-            >
-                {selectedReportDetail && (
-                    <div>
-                        <p><strong>ชื่อผู้ใช้:</strong> {selectedReportDetail.username}</p>
-                        <p><strong>วันที่:</strong> {selectedReportDetail.date}</p>
-                        <p><strong>หัวข้อการรายงาน:</strong> {selectedReportDetail.reportTopic}</p>
-                        <p><strong>คะแนนที่โดนหัก:</strong> {selectedReportDetail.deductedScore}</p>
-                        <p><strong>คะแนนที่เหลืออยู่:</strong> {selectedReportDetail.finalScore}</p>
-                        <p><strong>รายละเอียดการรายงาน:</strong> {selectedReportDetail.reportDetail}</p>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 }

@@ -110,6 +110,7 @@ router.get('/dashboard', authenticate, async (req, res) => {
 
 router.get('/report', authenticate, async (req, res) => {
     try {
+        // ดึงข้อมูลคะแนนทั้งหมด
         const scores = await prisma.score.findMany({
             include: {
                 student: {
@@ -117,35 +118,60 @@ router.get('/report', authenticate, async (req, res) => {
                         prefix: true,
                         firstName: true,
                         lastName: true,
-                    }
-                }
+                    },
+                },
             },
             orderBy: {
                 createdAt: 'desc',
-            }
+            },
         });
 
         if (scores.length === 0) {
             return res.status(204).json({ isError: false, message: 'ไม่มีข้อมูลคะแนน' });
         }
 
-        const reportData = scores.map((score, index) => ({
-            key: index + 1,
-            username: `${score.student.prefix} ${score.student.firstName} ${score.student.lastName}`,
-            date: formatDateTimeToThai(score.createdAt),
-            score: score.totalScore,
-            deductedScore: score.deductedScore || 0,
-            finalScore: score.finalScore,
-            reportTopic: score.reportTopic || 'ไม่มีหัวข้อการรายงาน',
-            reportDetail: score.reportDetail || 'ไม่มีรายละเอียด'
-        }));
+        // ค้นหา log ที่ตรงกับ score.id
+        const logData = await Promise.all(
+            scores.map(async (score) => {
+                const log = await prisma.log.findFirst({
+                    where: { studentId: score.studentId }, // กรองโดย studentId (หรือแก้ไขตาม schema ของคุณ)
+                    select: {
+                        username: true,
+                        email: true,
+                    },
+                });
+                return { scoreId: score.id, log };
+            })
+        );
+
+        // รวมข้อมูล score กับ log
+        const reportData = scores.map((score, index) => {
+            const log = logData.find((logItem) => logItem.scoreId === score.id)?.log;
+
+            return {
+                key: index + 1,
+                username: `${score.student.prefix} ${score.student.firstName} ${score.student.lastName}`,
+                date: formatDateTimeToThai(score.createdAt),
+                score: score.totalScore,
+                deductedScore: score.deductedScore || 0,
+                finalScore: score.finalScore,
+                reportTopic: score.reportTopic || 'ไม่มีหัวข้อการรายงาน',
+                reportDetail: score.reportDetail || 'ไม่มีรายละเอียด',
+                logDetails: log
+                    ? {
+                        username: log.username,
+                        email: log.email,
+                    }
+                    : null, // หากไม่มี log, ตั้งค่าเป็น null
+            };
+        });
 
         return res.status(200).json({
             isError: false,
             result: {
                 reportData,
                 totalReports: scores.length,
-            }
+            },
         });
     } catch (error) {
         console.error('Error fetching report:', error.message);
