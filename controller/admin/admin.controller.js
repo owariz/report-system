@@ -156,7 +156,6 @@ router.get('/report', authenticate, async (req, res) => {
                 deductedScore: score.deductedScore || 0,
                 finalScore: score.finalScore,
                 reportTopic: score.reportTopic || 'ไม่มีหัวข้อการรายงาน',
-                reportDetail: score.reportDetail || 'ไม่มีรายละเอียด',
                 logDetails: log
                     ? {
                         username: log.username,
