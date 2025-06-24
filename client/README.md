@@ -1,8 +1,36 @@
-# React + Vite
+# Client (React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+Frontend for the Report System using React, feature-based structure.
 
-Currently, two official plugins are available:
+## Getting Started
+1. `cd client`
+2. `npm install`
+3. `npm run dev`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Structure
+```
+src/
+  features/
+  hooks/
+  utils/
+  context/
+  assets/
+  App.jsx
+  main.jsx
+  index.css
+```
+
+## Useful Scripts
+- `npm run dev` - Start dev server
+- `npm run build` - Build for production
+- `npm run test` - Run tests
+
+## Best Practices
+- ใช้ features/ สำหรับแต่ละฟีเจอร์
+- ใช้ hooks/ สำหรับ custom hooks
+- ใช้ utils/ สำหรับฟังก์ชันช่วยเหลือ
+- ใช้ context/ สำหรับ global state
+
+## License
+MIT
