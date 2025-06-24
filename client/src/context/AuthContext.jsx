@@ -73,12 +73,23 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    delete api.defaults.headers.common['Authorization'];
-    // Reset to default settings on logout
-    setSettings({ siteName: 'Report System', announcementActive: false });
-  }, []);
+    const refreshToken = localStorage.getItem('refreshToken');
+    try {
+      if (refreshToken) {
+        await logoutUser(refreshToken); // Call API to invalidate token on backend
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Still proceed with client-side logout even if API call fails
+    } finally {
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      delete api.defaults.headers.common['Authorization'];
+      // Reset to default settings on logout
+      setSettings({ siteName: 'Report System', announcementActive: false });
+    }
+  }, [logoutUser]); // Added logoutUser to dependencies
 
   const value = useMemo(() => ({
     user,

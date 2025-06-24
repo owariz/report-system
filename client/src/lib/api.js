@@ -3,7 +3,7 @@ import { refreshAccessToken } from './apiUtils';
 import { API_CONFIG } from '../config';
 
 const api = axios.create({
-  baseURL: API_CONFIG.BASE_URL,
+  baseURL: API_CONFIG.BASE_URL, // Now this correctly sets the base path like /api/v1
 });
 
 // Request interceptor to add the access token to every request
