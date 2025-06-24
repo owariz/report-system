@@ -15,12 +15,34 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// CORS Configuration
+const defaultProductionOrigin = 'your-production-domain.com'; // Fallback if CORS_ORIGIN is not set
+const productionOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [defaultProductionOrigin];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-      ? ['your-production-domain.com']  
-      : ['http://localhost:5173'],
+  origin: (origin, callback) => {
+    if (process.env.NODE_ENV !== 'production') {
+      // Allow all origins in development
+      // or specific ones like 'http://localhost:5173'
+      // For simplicity here, allowing if origin is localhost:5173 or not set (e.g. Postman)
+      if (!origin || origin === 'http://localhost:5173') {
+        return callback(null, true);
+      } else {
+        // For development, if you want to restrict to only localhost:5173 explicitly:
+        // return callback(new Error(`CORS policy does not allow access from origin ${origin} in development`));
+        // Allowing for flexibility in dev (e.g. other local ports, Postman) by allowing undefined origin
+        return callback(null, true);
+      }
+    }
+    // Production: Check against configured origins
+    if (productionOrigins.indexOf(origin) !== -1 || (!origin && productionOrigins.includes('*'))) { // Also allow no origin if '*' is configured
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy does not allow access from origin ${origin}`));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 app.use(cors(corsOptions));
 

@@ -11,7 +11,7 @@ const authController = new AuthController(authService);
 
 router.post('/login', authController.login);
 router.post('/register', authController.register);
-router.get('/logout', authenticate, authController.logout);
+router.post('/logout', authenticate, authController.logout); // Changed GET to POST
 router.put('/status', authenticate, authController.updateStatus);
 router.get('/refresh', authController.refreshToken);
 router.get('/verifyemail', authController.verifyEmail);

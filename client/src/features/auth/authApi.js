@@ -13,6 +13,7 @@ export const getMe = () => {
   return api.get(API_CONFIG.ENDPOINTS.ME);
 };
 
-export const logoutUser = () => {
-  return api.get(API_CONFIG.ENDPOINTS.LOGOUT);
+export const logoutUser = (refreshToken) => {
+  // Ensure refreshToken is passed in the body for POST request
+  return api.post(API_CONFIG.ENDPOINTS.LOGOUT, { refreshToken });
 }; 

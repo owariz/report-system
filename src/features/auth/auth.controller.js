@@ -30,7 +30,7 @@ class AuthController {
 
   logout = async (req, res) => {
     const userId = req.user.uid;
-    const refreshToken = req.query.refreshToken;
+    const { refreshToken } = req.body; // Changed from req.query to req.body
     try {
       if (!refreshToken) return res.status(400).json({ isError: true, message: 'Missing refresh token' });
       const result = await this.authService.logout(userId, refreshToken);
