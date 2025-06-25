@@ -23,11 +23,17 @@ export async function refreshAccessToken(api) {
       throw new Error("No refresh token available");
     }
 
-    const response = await axios.get(API_CONFIG.ENDPOINTS.REFRESH, { params: { refreshToken } });
+    const response = await axios.post(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REFRESH}`, 
+      { refreshToken }
+    );
     const { accessToken, refreshToken: newRefreshToken } = response.data;
 
     localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", newRefreshToken);
+    if (newRefreshToken) {
+      localStorage.setItem("refreshToken", newRefreshToken);
+    }
+    
     if (api) {
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     }

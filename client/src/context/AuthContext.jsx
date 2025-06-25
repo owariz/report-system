@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import api from '../lib/api';
-import { getMe } from '../features/auth/authApi';
+import { getMe, logoutUser } from '../features/auth/authApi';
 
 const AuthContext = createContext();
 
@@ -71,8 +71,7 @@ export const AuthProvider = ({ children }) => {
     fetchSettings();
   }, [fetchSettings]);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem('refreshToken');
     try {
       if (refreshToken) {
@@ -89,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       // Reset to default settings on logout
       setSettings({ siteName: 'Report System', announcementActive: false });
     }
-  }, [logoutUser]); // Added logoutUser to dependencies
+  }, []);
 
   const value = useMemo(() => ({
     user,

@@ -56,7 +56,7 @@ class AuthController {
   };
 
   refreshToken = async (req, res) => {
-    const { refreshToken } = req.query;
+    const { refreshToken } = req.body;
     try {
       const result = await this.authService.refreshToken(refreshToken);
       if (result.error) return res.status(result.code).json({ isError: true, message: result.error });

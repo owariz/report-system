@@ -112,6 +112,7 @@ model Setting {
   siteName              String           @default("Report System")
   adminEmail            String?
   maintenanceMode       Boolean          @default(false)
+  maintenanceMessage    String?          // ข้อความประกาศ Maintenance Mode
   announcementActive    Boolean          @default(false)
   announcementText      String?
   announcementType      AnnouncementType @default(info)

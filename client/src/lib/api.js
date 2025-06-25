@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const newAccessToken = await refreshAccessToken();
+        const newAccessToken = await refreshAccessToken(api);
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
         originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
         return api(originalRequest);

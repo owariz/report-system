@@ -14,6 +14,7 @@ import {
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
+import MaintenancePage from '../../features/maintenance/MaintenancePage';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Text } = Typography;
@@ -39,13 +40,12 @@ const RootLayout = ({ children }) => {
   // Define roles that can bypass maintenance mode
   const maintenanceBypassRoles = ['ADMIN', 'SUPERADMIN', 'DEVELOPER'];
 
-  // Check for maintenance mode
-  if (settings?.maintenanceMode && !maintenanceBypassRoles.includes(user?.role) && location.pathname !== '/maintenance') {
-    // Redirect non-admin users to the maintenance page
-    // Ensure we don't redirect from the login page to avoid loops
-    if (location.pathname !== '/auth/login') {
-      return <Navigate to="/maintenance" replace />;
-    }
+  // ถ้าเปิด maintenance mode และ (user ไม่มี หรือ user ไม่ใช่ bypass) ให้แสดงเฉพาะหน้า MaintenancePage
+  if (
+    settings?.maintenanceMode &&
+    (!user || !maintenanceBypassRoles.includes(user.role))
+  ) {
+    return <MaintenancePage />;
   }
 
   const menuItems = useMemo(() => [

@@ -34,11 +34,18 @@ class ReportRepository {
     });
   }
 
-  async createReport({ studentId, reportTopic, reportDetail, deductedScore, username, email }) {
-    // studentId is now an integer
-    const studentIdInt = parseInt(studentId, 10);
-    if (isNaN(studentIdInt)) {
-        throw new Error("Invalid student ID format");
+  async createReport({ studentId, studentSid, reportTopic, reportDetail, deductedScore, username, email }) {
+    let studentIdInt = null;
+    if (studentId) {
+      studentIdInt = parseInt(studentId, 10);
+    } else if (studentSid) {
+      // หา id จาก sid
+      const student = await prisma.student.findUnique({ where: { sid: parseInt(studentSid, 10) } });
+      if (!student) return null;
+      studentIdInt = student.id;
+    }
+    if (!studentIdInt || isNaN(studentIdInt)) {
+      throw new Error("Invalid student ID or SID format");
     }
 
     return prisma.$transaction(async (prisma) => {
@@ -81,6 +88,35 @@ class ReportRepository {
       });
 
       return report;
+    });
+  }
+
+  async getReportSummary() {
+    // จำนวนรายงานทั้งหมด
+    const totalReports = await prisma.score.count();
+    return { totalReports };
+  }
+
+  async getReportTrend() {
+    // Group รายงานตามเดือน/ปี (12 เดือนล่าสุด)
+    const result = await prisma.$queryRaw`
+      SELECT 
+        to_char("createdAt", 'YYYY-MM') as month,
+        COUNT(*) as count
+      FROM "score"
+      GROUP BY month
+      ORDER BY month DESC
+      LIMIT 12;
+    `;
+    // แปลงข้อมูลให้เรียงจากเก่าไปใหม่
+    return (result || []).reverse();
+  }
+
+  async getRecentReports(limit = 10) {
+    return prisma.score.findMany({
+      include: { student: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
     });
   }
 }

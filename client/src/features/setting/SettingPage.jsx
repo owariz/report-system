@@ -67,6 +67,22 @@ const SettingsPage = () => {
             <Switch checkedChildren="On" unCheckedChildren="Off" />
         </Form.Item>
         <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.maintenanceMode !== currentValues.maintenanceMode}
+        >
+            {({ getFieldValue }) =>
+              getFieldValue('maintenanceMode') ? (
+                <Form.Item
+                  name="maintenanceMessage"
+                  label="Maintenance Message"
+                  rules={[{ required: false }]}
+                >
+                  <Input.TextArea rows={3} placeholder="ข้อความประกาศขณะปิดปรับปรุงระบบ (optional)" />
+                </Form.Item>
+              ) : null
+            }
+        </Form.Item>
+        <Form.Item
             name="announcementActive"
             label="Enable System-wide Announcement"
             valuePropName="checked"

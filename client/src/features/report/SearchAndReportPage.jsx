@@ -103,8 +103,8 @@ export default function SearchAndReportPage() {
     setError('');
     setStudentData(null);
     try {
-      const res = await api.get(`/student/${sid}`);
-      setStudentData(res.data.result);
+      const res = await api.get(`/student/reports/${sid}`);
+      setStudentData(res.result);
     } catch (err) {
       setError(err.response?.data?.message || 'ไม่พบข้อมูลนักศึกษา หรือเกิดข้อผิดพลาด');
     } finally {
@@ -116,7 +116,7 @@ export default function SearchAndReportPage() {
     setLoading(true);
     const finalTopic = formValues.reportTopic === 'อื่น ๆ' ? formValues.customReportTopic : formValues.reportTopic;
     const reportPayload = {
-      studentId: studentData.id,
+      studentSid: studentData.sid,
       reportTopic: finalTopic,
       reportDetail: formValues.reportDetail || '',
       deductedScore: Number(formValues.deductedScore),
@@ -125,7 +125,7 @@ export default function SearchAndReportPage() {
     };
 
     try {
-      await api.post('/student/report', reportPayload);
+      await api.post('/student/reports/report', reportPayload);
       message.success(`รายงานนักศึกษา ${studentData.firstName} สำเร็จ`);
       setIsModalVisible(false);
       setStudentData(null);
@@ -156,7 +156,8 @@ export default function SearchAndReportPage() {
           </Button>
         </Space>
 
-        {error && <Alert message={error} type="error" showIcon style={{ marginTop: '20px' }} />}
+        {/* เงื่อนไขใหม่: แสดง error เฉพาะเมื่อไม่มี studentData และ error มีค่า */}
+        {(!studentData && error) && <Alert message={error} type="error" showIcon style={{ marginTop: '20px' }} />}
 
         {studentData && (
           <Card style={{ marginTop: '20px' }} type="inner" title="ผลการค้นหา">
