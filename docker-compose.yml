@@ -8,6 +8,7 @@ services:
       - .env
     depends_on:
       - db
+    command: sh -c "npx prisma migrate deploy && npm run prisma:seed && node index.js"
   frontend:
     build: ./client
     ports:
