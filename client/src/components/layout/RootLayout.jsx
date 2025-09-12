@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Layout, Menu, Breadcrumb, Alert, Avatar, Dropdown, Space, Typography, Spin } from 'antd';
 import {
-  DesktopOutlined,
   FileOutlined,
   PieChartOutlined,
   TeamOutlined,
