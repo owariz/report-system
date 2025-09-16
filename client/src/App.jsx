@@ -9,6 +9,7 @@ import RootLayout from "./components/layout/RootLayout";
 import UserPage from "./features/user/UserPage";
 import ReportPage from "./features/report/ReportPage";
 import SearchAndReportPage from "./features/report/SearchAndReportPage";
+import AddStudentPage from "./features/student/AddStudentPage";
 import AddJson from "./features/dev/AddJson";
 import VerifyEmailPage from "./features/auth/VerifyEmailPage";
 import HealthCheckPage from "./features/healthcheck/HealthCheckPage";
@@ -34,6 +35,7 @@ const App = () => {
               <Route path="reports" element={<ReportPage />} />
               <Route path="setting" element={<SettingPage />} />
               <Route path="users" element={<UserPage />} />
+              <Route path="admin/add-student" element={<AddStudentPage />} />
               <Route path="add/json" element={<AddJson />} />
             </Route>
             
