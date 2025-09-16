@@ -5,6 +5,7 @@ import {
   FileTextOutlined,
   SettingOutlined,
   DashboardOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
@@ -31,6 +32,10 @@ export default function AdminMenu({ profile }) {
 
         {profile && adminRoles.includes(profile.role) && (
           <>
+            <Menu.Item key="/admin/add-student" icon={<UserAddOutlined />}>
+              เพิ่มนักเรียน
+            </Menu.Item>
+
             <Menu.Item key="/users" icon={<UserOutlined />}>
               จัดการผู้ใช้งาน
             </Menu.Item>
