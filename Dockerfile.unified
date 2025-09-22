@@ -10,6 +10,9 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 
+# Install OpenSSL, a dependency for Prisma on Alpine
+RUN apk add --no-cache openssl
+
 # Copy backend dependencies and install them
 COPY package*.json ./
 # We need to install all dependencies, including dev, for prisma to work at runtime
