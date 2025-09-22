@@ -16,21 +16,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS Configuration
-const defaultProductionOrigin = 'your-production-domain.com'; // Fallback if CORS_ORIGIN is not set
+const defaultProductionOrigin = 'http://localhost:4000/'; // Fallback if CORS_ORIGIN is not set
 const productionOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [defaultProductionOrigin];
 
 const corsOptions = {
   origin: (origin, callback) => {
     if (process.env.NODE_ENV !== 'production') {
-      // Allow all origins in development
-      // or specific ones like 'http://localhost:5173'
-      // For simplicity here, allowing if origin is localhost:5173 or not set (e.g. Postman)
       if (!origin || origin === 'http://localhost:5173') {
         return callback(null, true);
       } else {
-        // For development, if you want to restrict to only localhost:5173 explicitly:
-        // return callback(new Error(`CORS policy does not allow access from origin ${origin} in development`));
-        // Allowing for flexibility in dev (e.g. other local ports, Postman) by allowing undefined origin
         return callback(null, true);
       }
     }
@@ -44,7 +38,7 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -58,19 +52,13 @@ app.use(passport.initialize());
 // API Routes
 app.use('/api/v1', apiRoutes);
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
-// This is for client-side routing.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'), (err) => {
-    if (err) {
-      res.status(500).send(err);
-    }
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'client/dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'client/dist/index.html'));
   });
-});
+}
 
 app.use(errorHandler);
 
