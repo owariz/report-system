@@ -108,7 +108,7 @@ const ReportPage = () => {
         <div className="space-y-6">
             <Title level={2}>All Reports</Title>
             <Card>
-                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <div className="flex flex-col gap-4 mb-4 md:flex-row">
                     <Search
                         placeholder="Search by SID, Name, or Topic..."
                         onChange={(e) => setSearchText(e.target.value)}
@@ -116,7 +116,7 @@ const ReportPage = () => {
                         allowClear
                     />
                      <RangePicker
-                        className="w-full md:w-auto flex-grow"
+                        className="flex-grow w-full md:w-auto"
                         onChange={(dates) => setDateRange(dates)}
                      />
                 </div>
@@ -166,7 +166,7 @@ const ReportPage = () => {
                         </Descriptions.Item>
                         <Descriptions.Item label="วันที่บันทึก">
                             {selectedReport.logs && selectedReport.logs[0] ? (() => { const d = new Date(selectedReport.logs[0].timestamp); return isNaN(d) ? '-' : d.toLocaleString('th-TH'); })() : 'N/A'}
-                        </D escriptions.Item>
+                        </Descriptions.Item>
                     </Descriptions>
                 )}
             </Modal>

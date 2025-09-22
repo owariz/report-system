@@ -132,7 +132,7 @@ export default function SearchAndReportPage() {
       setStudentData(null);
       setSid('');
     } catch (err) {
-      message.error('เกิดข้อผิดพลาดในการส่งรายงาน');
+      message.error(err.response?.data?.message || 'เกิดข้อผิดพลาดในการบันทึกรายงาน');
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ export default function SearchAndReportPage() {
       </div>
 
       <Card title="ค้นหานักศึกษา">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <Input
             placeholder="กรอกรหัสนักศึกษา (SID)"
             value={sid}
@@ -166,7 +166,7 @@ export default function SearchAndReportPage() {
 
       {studentData && (
         <Card title="ผลการค้นหา" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
             <div><Text strong>SID:</Text> <Paragraph className="inline">{studentData.sid}</Paragraph></div>
             <div><Text strong>ชื่อ-สกุล:</Text> <Paragraph className="inline">{`${studentData.prefix} ${studentData.firstName} ${studentData.lastName}`}</Paragraph></div>
             <div><Text strong>ระดับชั้น:</Text> <Paragraph className="inline">{`${studentData.grade}/${studentData.classroom}`}</Paragraph></div>
