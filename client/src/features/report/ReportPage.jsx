@@ -1,16 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Table, Typography, Card, Tag, Input, Row, Col, DatePicker, Button, Modal, Descriptions } from 'antd';
-import { useAuth } from "../../context/AuthContext";
+import { Table, Typography, Tag, Input, DatePicker, Button, Modal, Descriptions } from 'antd';
 import useFetch from "../../hooks/useFetch";
 import { getReports } from './reportApi';
 import useDebounce from '../../hooks/useDebounce';
+import Card from '../../components/common/Card';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Search } = Input;
 const { RangePicker } = DatePicker;
 
 const ReportPage = () => {
-    const { user } = useAuth();
     const { data, loading, error } = useFetch(getReports); 
     const reports = data?.result || [];
     
@@ -32,6 +31,7 @@ const ReportPage = () => {
                 const d = new Date(text);
                 return isNaN(d) ? '-' : d.toLocaleDateString('th-TH');
             },
+            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
         },
         {
             title: 'SID',
@@ -54,12 +54,14 @@ const ReportPage = () => {
             dataIndex: 'deductedScore',
             key: 'deductedScore',
             render: (text) => <Tag color="red">- {text}</Tag>,
+            sorter: (a, b) => a.deductedScore - b.deductedScore,
         },
         {
             title: 'คะแนนที่เหลือ',
             dataIndex: 'finalScore',
             key: 'finalScore',
             render: (text) => <Tag color={text > 50 ? 'green' : 'orange'}>{text}</Tag>,
+            sorter: (a, b) => a.finalScore - b.finalScore,
         },
         {
             title: 'รายละเอียด',
@@ -103,25 +105,21 @@ const ReportPage = () => {
     }
 
     return (
-        <>
+        <div className="space-y-6">
             <Title level={2}>All Reports</Title>
             <Card>
-                <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-                    <Col xs={24} md={12}>
-                        <Search
-                            placeholder="Search by SID, Name, or Topic..."
-                            onChange={(e) => setSearchText(e.target.value)}
-                            style={{ width: '100%' }}
-                            allowClear
-                        />
-                    </Col>
-                    <Col xs={24} md={12}>
-                         <RangePicker 
-                            style={{ width: '100%' }}
-                            onChange={(dates) => setDateRange(dates)}
-                         />
-                    </Col>
-                </Row>
+                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <Search
+                        placeholder="Search by SID, Name, or Topic..."
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="flex-grow"
+                        allowClear
+                    />
+                     <RangePicker
+                        className="w-full md:w-auto flex-grow"
+                        onChange={(dates) => setDateRange(dates)}
+                     />
+                </div>
                 <Table
                     columns={columns}
                     dataSource={filteredReports}
@@ -136,6 +134,7 @@ const ReportPage = () => {
                 title={<Title level={4}>รายละเอียดรายงาน</Title>}
                 onCancel={() => setSelectedReport(null)}
                 footer={null}
+                destroyOnClose
             >
                 {selectedReport && (
                     <Descriptions bordered column={1} size="middle">
@@ -152,7 +151,7 @@ const ReportPage = () => {
                             {selectedReport.reportTopic}
                         </Descriptions.Item>
                         <Descriptions.Item label="รายละเอียด">
-                            {selectedReport.reportDetail}
+                            {selectedReport.reportDetail || '-'}
                         </Descriptions.Item>
                         <Descriptions.Item label="คะแนนที่โดนหัก">
                             <Tag color="red">- {selectedReport.deductedScore}</Tag>
@@ -167,11 +166,11 @@ const ReportPage = () => {
                         </Descriptions.Item>
                         <Descriptions.Item label="วันที่บันทึก">
                             {selectedReport.logs && selectedReport.logs[0] ? (() => { const d = new Date(selectedReport.logs[0].timestamp); return isNaN(d) ? '-' : d.toLocaleString('th-TH'); })() : 'N/A'}
-                        </Descriptions.Item>
+                        </D escriptions.Item>
                     </Descriptions>
                 )}
             </Modal>
-        </>
+        </div>
      );
 }
 

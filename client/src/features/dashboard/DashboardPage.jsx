@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Row, Col, Card, Typography, Statistic, Skeleton, Result, Table } from 'antd';
+import { Typography, Statistic, Skeleton, Result, Table } from 'antd';
 import { Line, Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -8,7 +8,7 @@ import {
   PointElement,
   LineElement,
   BarElement,
-  Title,
+  Title as ChartTitle,
   Tooltip,
   Legend,
   ArcElement,
@@ -22,10 +22,10 @@ import {
   ArrowUpOutlined,
 } from '@ant-design/icons';
 import api from "../../lib/api";
+import Card from '../../components/common/Card';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ChartTitle, Tooltip, Legend, ArcElement);
 
-// ตั้งค่า Chart Options กลาง
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -36,10 +36,13 @@ const chartOptions = {
   },
 };
 
-// สีสำหรับ Pie Chart
-const PIE_CHART_COLORS = [
-  '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
-];
+const PIE_CHART_COLORS = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'];
+
+const StatCard = ({ title, value, prefix, color }) => (
+  <Card>
+    <Statistic title={title} value={value} prefix={prefix} valueStyle={{ color }} />
+  </Card>
+);
 
 export default function DashboardPage() {
   const [reportData, setReportData] = useState({ summary: null, trend: [], recent: [] });
@@ -160,8 +163,8 @@ export default function DashboardPage() {
     { title: 'SID', dataIndex: ['student', 'sid'], key: 'sid' },
     { title: 'ชื่อนักศึกษา', dataIndex: ['student', 'firstName'], key: 'studentName', render: (_, r) => r.student ? `${r.student.prefix} ${r.student.firstName} ${r.student.lastName}` : 'N/A' },
     { title: 'หัวข้อการรายงาน', dataIndex: 'reportTopic', key: 'reportTopic', render: (text) => text || 'N/A' },
-    { title: 'คะแนนที่โดนหัก', dataIndex: 'deductedScore', key: 'deductedScore', render: (text) => <span style={{ color: 'red' }}>- {text}</span> },
-    { title: 'คะแนนที่เหลือ', dataIndex: 'finalScore', key: 'finalScore', render: (text) => <span style={{ color: text > 50 ? 'green' : 'orange' }}>{text}</span> },
+    { title: 'คะแนนที่โดนหัก', dataIndex: 'deductedScore', key: 'deductedScore', render: (text) => <span className="text-red-600">- {text}</span> },
+    { title: 'คะแนนที่เหลือ', dataIndex: 'finalScore', key: 'finalScore', render: (text) => <span className={text > 50 ? 'text-green-600' : 'text-orange-500'}>{text}</span> },
   ];
 
   if (loading) {
@@ -173,112 +176,61 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      <Typography.Title level={2} style={{ marginBottom: '24px' }}>
+    <div className="space-y-6">
+      <Typography.Title level={2}>
         Dashboard Overview
       </Typography.Title>
-
-      {/* --- Report Stats --- */}
-      <Typography.Title level={4} style={{ marginTop: '24px', marginBottom: '16px' }}>
-        ภาพรวมรายงาน
-      </Typography.Title>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="รายงานทั้งหมด" value={summary?.totalReports || 0} prefix={<FileTextOutlined />} valueStyle={{ color: '#1890ff' }}/>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="รายงานเดือนนี้" value={reportsThisMonth} prefix={<BarChartOutlined />} valueStyle={{ color: '#1890ff' }}/>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="รายงานวันนี้" value={reportsToday} prefix={<PieChartOutlined />} valueStyle={{ color: '#1890ff' }}/>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* --- User & Score Stats --- */}
-      <Typography.Title level={4} style={{ marginTop: '24px', marginBottom: '16px' }}>
-        ภาพรวมผู้ใช้และคะแนน
-      </Typography.Title>
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="ผู้ใช้ทั้งหมด" value={userStats?.totalUsersCount || 0} prefix={<UsergroupAddOutlined />} valueStyle={{ color: '#3f8600' }}/>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="ผู้ใช้ใหม่ (7 วัน)" value={userStats?.newUsersCount || 0} prefix={<UserOutlined />} valueStyle={{ color: '#3f8600' }}/>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Statistic title="คะแนนเฉลี่ย" value={userStats?.averageScore || 0} precision={2} prefix={<ArrowUpOutlined />} suffix="pts" valueStyle={{ color: '#faad14' }}/>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* --- Charts Row 1 --- */}
-      <Row gutter={[16, 16]} style={{ marginTop: '32px' }}>
-        <Col xs={24} lg={12}>
-          <Card title="แนวโน้มจำนวนรายงาน (12 เดือนล่าสุด)" bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <div style={{ height: '300px' }}>
-              <Line data={trendChartData} options={chartOptions} />
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={12}>
-          <Card title="การกระจายของคะแนน" bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <div style={{ height: '300px' }}>
-              <Bar data={scoreDistributionData} options={chartOptions} />
-            </div>
-          </Card>
-        </Col>
-      </Row>
       
-      {/* --- Charts Row 2 --- */}
-      <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
-      <Col xs={24} lg={12}>
-          <Card title="สัดส่วนประเภทของรายงาน (10 รายการล่าสุด)" bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <div style={{ height: '300px' }}>
-              <Pie data={pieData} options={chartOptions} />
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card title="Top 5 ผู้ใช้ที่โดนหักคะแนนเยอะสุด" bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <ul style={{ paddingLeft: '20px', height: '300px', overflowY: 'auto' }}>
-              {(userStats?.usersWithMostDeductedPoints || []).map((user, index) => (
-                <li key={index} style={{ marginBottom: '8px' }}>
-                  <Typography.Text>{user.name || 'N/A'} (SID: {user.sid || 'N/A'}): </Typography.Text>
-                  <Typography.Text strong style={{ color: '#cf1322' }}>{user.deductedPoints || 0} points</Typography.Text>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </Col>
-      </Row>
+      {/* --- Main Stats --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StatCard title="รายงานทั้งหมด" value={summary?.totalReports || 0} prefix={<FileTextOutlined />} color="#1677ff" />
+        <StatCard title="รายงานเดือนนี้" value={reportsThisMonth} prefix={<BarChartOutlined />} color="#1677ff" />
+        <StatCard title="รายงานวันนี้" value={reportsToday} prefix={<PieChartOutlined />} color="#1677ff" />
+        <StatCard title="ผู้ใช้ทั้งหมด" value={userStats?.totalUsersCount || 0} prefix={<UsergroupAddOutlined />} color="#3f8600" />
+        <StatCard title="ผู้ใช้ใหม่ (7 วัน)" value={userStats?.newUsersCount || 0} prefix={<UserOutlined />} color="#3f8600" />
+        <StatCard title="คะแนนเฉลี่ย" value={userStats?.averageScore || 0} precision={2} prefix={<ArrowUpOutlined />} suffix="pts" color="#faad14" />
+      </div>
+
+      {/* --- Charts --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card title="แนวโน้มจำนวนรายงาน (12 เดือนล่าสุด)">
+          <div className="h-72">
+            <Line data={trendChartData} options={chartOptions} />
+          </div>
+        </Card>
+        <Card title="การกระจายของคะแนน">
+          <div className="h-72">
+            <Bar data={scoreDistributionData} options={chartOptions} />
+          </div>
+        </Card>
+        <Card title="สัดส่วนประเภทของรายงาน (10 รายการล่าสุด)">
+          <div className="h-72">
+            <Pie data={pieData} options={chartOptions} />
+          </div>
+        </Card>
+        <Card title="Top 5 ผู้ใช้ที่โดนหักคะแนนเยอะสุด">
+          <ul className="h-72 overflow-y-auto space-y-2">
+            {(userStats?.usersWithMostDeductedPoints || []).map((user, index) => (
+              <li key={index}>
+                <Typography.Text>{user.name || 'N/A'} (SID: {user.sid || 'N/A'}): </Typography.Text>
+                <Typography.Text strong className="text-red-700">{user.deductedPoints || 0} points</Typography.Text>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
 
       {/* --- Recent Reports Table --- */}
-      <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
-        <Col xs={24}>
-          <Card title="รายงานล่าสุด (10 รายการ)" bordered={false} style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.09)' }}>
-            <Table
-              columns={columns}
-              dataSource={recent}
-              pagination={false}
-              rowKey="id"
-              size="small"
-              scroll={{ x: 'max-content' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-    </>
+      <Card title="รายงานล่าสุด (10 รายการ)">
+        <Table
+          columns={columns}
+          dataSource={recent}
+          pagination={false}
+          rowKey="id"
+          size="small"
+          scroll={{ x: 'max-content' }}
+        />
+      </Card>
+    </div>
   );
 }

@@ -11,119 +11,18 @@ import {
   Select,
   Checkbox,
   Tag,
-  Spin,
-  Timeline,
-  Card,
-  Empty,
 } from "antd";
-import { 
-  ExclamationCircleOutlined,
-  LoginOutlined,
-  LogoutOutlined,
-  UserAddOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  HistoryOutlined,
-} from '@ant-design/icons';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { useAuth } from "../../context/AuthContext";
-import { getAllUsers, updateUser, createUser, getUserLogs, deleteUser } from './userApi';
+import { getAllUsers, updateUser, createUser, deleteUser } from './userApi';
 import { formatDate } from "../../utils/formatDate";
 import useDebounce from "../../hooks/useDebounce";
+import Card from "../../components/common/Card";
+import UserLogs from "./components/UserLogs";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { Search } = Input;
-
-// Icon and color mapping for log actions
-const logStyle = {
-  'User Login': { icon: <LoginOutlined />, color: 'green' },
-  'User Logout': { icon: <LogoutOutlined />, color: 'gray' },
-  'User Registration': { icon: <UserAddOutlined />, color: 'blue' },
-  'User Update': { icon: <EditOutlined />, color: 'orange' },
-  'User Deletion': { icon: <DeleteOutlined />, color: 'red' },
-  default: { icon: <HistoryOutlined />, color: 'purple' }
-};
-
-const getLogStyle = (action) => {
-  return logStyle[action] || logStyle.default;
-};
-
-// New component for rendering user logs
-const UserLogs = ({ userEmail }) => {
-  const [logs, setLogs] = useState([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [pagination, setPagination] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const fetchLogs = useCallback(async (page) => {
-    setLoadingLogs(true);
-    try {
-      const response = await getUserLogs(userEmail, { page, limit: 5 });
-      if (response && response.result) {
-        setLogs(prevLogs => page === 1 ? response.result.logs : [...prevLogs, ...response.result.logs]);
-        setPagination(response.result.pagination);
-      }
-    } catch (error) {
-      message.error("ไม่สามารถโหลดประวัติการใช้งานได้");
-    } finally {
-      setLoadingLogs(false);
-    }
-  }, [userEmail]);
-
-  useEffect(() => {
-    fetchLogs(1); // Fetch initial logs
-  }, [fetchLogs]);
-
-  const handleLoadMore = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    fetchLogs(nextPage);
-  };
-
-  if (logs.length === 0 && loadingLogs) {
-    return <Spin style={{ display: 'block', margin: '20px auto' }} />;
-  }
-
-  if (logs.length === 0) {
-    return <Empty description="ไม่มีประวัติการใช้งาน" />;
-  }
-
-  // Map logs to the format required by the Timeline's 'items' prop
-  const timelineItems = logs.map((log) => {
-    const { icon, color } = getLogStyle(log.action);
-    return {
-      key: log.id,
-      dot: icon,
-      color: color,
-      children: (
-        <>
-          <Text strong>{log.action}</Text>
-          <Paragraph style={{ margin: '5px 0' }}>{log.details}</Paragraph>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {formatDate(log.timestamp)}
-            {log.ipAddress && ` - IP: ${log.ipAddress}`}
-          </Text>
-        </>
-      ),
-    };
-  });
-
-  const loadMoreButton =
-    pagination && pagination.page < pagination.totalPages ? (
-      <div style={{ textAlign: 'center', marginTop: 12 }}>
-        <Button onClick={handleLoadMore} loading={loadingLogs}>
-          โหลดเพิ่มเติม
-        </Button>
-      </div>
-    ) : null;
-
-  return (
-    <Card style={{ background: '#fafafa', marginTop: 16, marginBottom: 16 }}>
-      <Timeline items={timelineItems} />
-      {loadMoreButton}
-    </Card>
-  );
-};
 
 export default function Users() {
   const { user: currentUser } = useAuth();
@@ -169,13 +68,10 @@ export default function Users() {
   const showModal = (user) => {
     setEditingUser(user);
     if (user) {
-      // When editing, create a copy of the user object but remove the password.
-      // The form's password field will be blank.
       const formValues = { ...user };
       delete formValues.password; 
       form.setFieldsValue(formValues);
     } else {
-      // For a new user, just reset the form.
       form.resetFields();
       form.setFieldsValue({ isVerified: false });
     }
@@ -277,18 +173,12 @@ export default function Users() {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button
-            onClick={() => showModal(record)}
-            color="primary"
-            variant="dashed"
-          >
+          <Button onClick={() => showModal(record)}>
             แก้ไข
           </Button>
           <Button
-            type="danger"
+            danger
             onClick={() => handleDelete(record.id)}
-            color="danger"
-            variant="solid"
             disabled={record.role === 'SUPERADMIN' || record.id === currentUser?.id}
           >
             ลบ
@@ -299,20 +189,20 @@ export default function Users() {
   ];
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="space-y-6">
       <Title level={2}>จัดการผู้ใช้</Title>
       <Card>
-        <Space style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-            <Button onClick={() => showModal(null)} type="primary">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            <Button onClick={() => showModal(null)} type="primary" className="w-full sm:w-auto">
                 เพิ่มผู้ใช้ใหม่
             </Button>
             <Search
                 placeholder="ค้นหาจากชื่อ หรืออีเมล์"
                 onChange={(e) => setSearchText(e.target.value)}
-                style={{ width: 300 }}
+                className="w-full sm:max-w-xs"
                 allowClear
             />
-        </Space>
+        </div>
         <Table
           columns={columns}
           dataSource={filteredUsers}
@@ -331,6 +221,7 @@ export default function Users() {
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null}
+        destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleOk}>
           <Form.Item
@@ -382,7 +273,7 @@ export default function Users() {
             </Select>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" block>
               {editingUser ? "บันทึกการเปลี่ยนแปลง" : "เพิ่มผู้ใช้"}
             </Button>
           </Form.Item>

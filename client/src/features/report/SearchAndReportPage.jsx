@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Card, Button, message, Modal, Form, Select, Space, Alert, Input, Typography, Tag
+  Button, message, Modal, Form, Select, Alert, Input, Typography, Tag
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import Card from '../../components/common/Card'; // Import the new Card component
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -138,39 +139,44 @@ export default function SearchAndReportPage() {
   };
 
   return (
-    <>
-      <Title level={2}>ค้นหาและบันทึกพฤติกรรมนักศึกษา</Title>
-      <Text>ค้นหาข้อมูลนักศึกษาด้วยรหัสนักศึกษา (SID) เพื่อดำเนินการบันทึกพฤติกรรม</Text>
-      
-      <Card style={{ marginTop: '24px' }}>
-        <Space>
+    <div className="space-y-6">
+      <div>
+        <Title level={2}>ค้นหาและบันทึกพฤติกรรมนักศึกษา</Title>
+        <Text>ค้นหาข้อมูลนักศึกษาด้วยรหัสนักศึกษา (SID) เพื่อดำเนินการบันทึกพฤติกรรม</Text>
+      </div>
+
+      <Card title="ค้นหานักศึกษา">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Input
             placeholder="กรอกรหัสนักศึกษา (SID)"
             value={sid}
             onChange={(e) => setSid(e.target.value)}
             onPressEnter={handleSearch}
-            style={{ width: '300px' }}
+            className="flex-grow"
           />
-          <Button type="primary" onClick={handleSearch} loading={loading} icon={<SearchOutlined />}>
+          <Button type="primary" onClick={handleSearch} loading={loading} icon={<SearchOutlined />} className="w-full sm:w-auto">
             ค้นหา
           </Button>
-        </Space>
-
-        {/* เงื่อนไขใหม่: แสดง error เฉพาะเมื่อไม่มี studentData และ error มีค่า */}
-        {(!studentData && error) && <Alert message={error} type="error" showIcon style={{ marginTop: '20px' }} />}
-
-        {studentData && (
-          <Card style={{ marginTop: '20px' }} type="inner" title="ผลการค้นหา">
-            <Paragraph><strong>SID:</strong> {studentData.sid}</Paragraph>
-            <Paragraph><strong>ชื่อ-สกุล:</strong> {`${studentData.prefix} ${studentData.firstName} ${studentData.lastName}`}</Paragraph>
-            <Paragraph><strong>ระดับชั้น:</strong> {`${studentData.grade}/${studentData.classroom}`}</Paragraph>
-            <Paragraph><strong>คะแนนปัจจุบัน:</strong> <Tag color={studentData.latestScore > 50 ? 'green' : 'red'}>{studentData.latestScore}</Tag></Paragraph>
-            <Button type="primary" danger onClick={() => setIsModalVisible(true)}>
-              บันทึกพฤติกรรม
-            </Button>
-          </Card>
-        )}
+        </div>
       </Card>
+
+      {(!studentData && error) && (
+        <Alert message={error} type="error" showIcon />
+      )}
+
+      {studentData && (
+        <Card title="ผลการค้นหา" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div><Text strong>SID:</Text> <Paragraph className="inline">{studentData.sid}</Paragraph></div>
+            <div><Text strong>ชื่อ-สกุล:</Text> <Paragraph className="inline">{`${studentData.prefix} ${studentData.firstName} ${studentData.lastName}`}</Paragraph></div>
+            <div><Text strong>ระดับชั้น:</Text> <Paragraph className="inline">{`${studentData.grade}/${studentData.classroom}`}</Paragraph></div>
+            <div><Text strong>คะแนนปัจจุบัน:</Text> <Tag color={studentData.latestScore > 50 ? 'green' : 'red'}>{studentData.latestScore}</Tag></div>
+          </div>
+          <Button type="primary" danger onClick={() => setIsModalVisible(true)} block>
+            บันทึกพฤติกรรม
+          </Button>
+        </Card>
+      )}
 
       {studentData && (
         <ReportModal
@@ -181,6 +187,6 @@ export default function SearchAndReportPage() {
           loading={loading}
         />
       )}
-    </>
+    </div>
   );
 } 
