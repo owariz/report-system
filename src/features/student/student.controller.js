@@ -5,7 +5,7 @@ class StudentController {
     this.studentService = studentService;
   }
 
-  createStudent = async (req, res, next) => {
+  async createStudent(req, res, next) {
     try {
       const student = await this.studentService.createStudent(req.body);
       res.status(201).json({
@@ -22,7 +22,7 @@ class StudentController {
       }
       next(error);
     }
-  };
+  }
 }
 
 module.exports = new StudentController(StudentService);
