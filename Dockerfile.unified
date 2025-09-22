@@ -13,13 +13,13 @@ WORKDIR /app
 # Install OpenSSL, a dependency for Prisma on Alpine
 RUN apk add --no-cache openssl
 
-# Copy backend dependencies and install them
+# Copy package files and prisma schema
 COPY package*.json ./
-# We need to install all dependencies, including dev, for prisma to work at runtime
-RUN npm install
-
-# Copy prisma schema and migrations
 COPY prisma ./prisma/
+
+# Install dependencies. This will also trigger `prisma generate`
+# because the prisma schema is now available.
+RUN npm install
 
 # Copy the rest of the backend source code
 COPY src ./src
