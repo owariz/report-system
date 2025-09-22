@@ -23,11 +23,11 @@ async function main() {
     console.log('Superadmin already exists.');
   } else {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password', salt);
+    const hashedPassword = await bcrypt.hash('123456', salt);
 
     const superadmin = await prisma.account.create({
       data: {
-        email: 'superadmin@example.com',
+        email: 'superadmin@gmail.com',
         username: 'superadmin',
         password: hashedPassword,
         role: 'SUPERADMIN',
@@ -55,7 +55,7 @@ async function main() {
     const classroom = classrooms[Math.floor(Math.random() * classrooms.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const sid = 65000 + i;
-    const email = `student${i}@example.com`;
+    const email = `student${i}@gmail.com`;
     const phoneNumber = `08${Math.floor(10000000 + Math.random() * 89999999)}`;
 
     await prisma.student.upsert({
@@ -81,10 +81,10 @@ async function main() {
   const existingAdmin = await prisma.account.findFirst({ where: { role: 'ADMIN' } });
   if (!existingAdmin) {
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('adminpass', salt);
+    const hashedPassword = await bcrypt.hash('123456', salt);
     await prisma.account.create({
       data: {
-        email: 'admin@example.com',
+        email: 'admin@gmail.com',
         username: 'admin',
         password: hashedPassword,
         role: 'ADMIN',
@@ -148,7 +148,7 @@ async function main() {
           action: 'สร้างรายงาน',
           details: `รายงานหัวข้อ: ${reportTopic}`,
           username: 'กรรมการ' + Math.floor(Math.random() * 10),
-          email: 'committee' + Math.floor(Math.random() * 100) + '@example.com',
+          email: 'committee' + Math.floor(Math.random() * 100) + '@gmail.com',
           timestamp: lastDate,
         },
       });

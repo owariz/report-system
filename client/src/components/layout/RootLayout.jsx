@@ -53,14 +53,15 @@ const RootLayout = ({ children }) => {
     { key: '/reports', icon: <FileOutlined />, label: <Link to="/reports">All Reports</Link> },
     { key: '/users', icon: <TeamOutlined />, label: <Link to="/users">Users</Link> },
     { key: '/setting', icon: <SettingOutlined />, label: <Link to="/setting">Setting</Link> },
-    (user && adminRoles.includes(user.role)) && {
-      key: 'sub-admin',
-      icon: <ToolOutlined />,
-      label: 'Developer',
-      children: [
-        { key: '/add/json', label: <Link to="/add/json">Add JSON</Link> },
-      ],
-    },
+    { key: '/admin/add-student', icon: <SettingOutlined />, label: <Link to="/admin/add-student">Add Student</Link> },
+    // (user && adminRoles.includes(user.role)) && {
+    //   key: 'sub-admin',
+    //   icon: <ToolOutlined />,
+    //   label: 'Developer',
+    //   children: [
+    //     { key: '/add/json', label: <Link to="/add/json">Add JSON</Link> },
+    //   ],
+    // },
   ].filter(Boolean), [user, adminRoles]);
 
   const userMenuItems = (
