@@ -1,4 +1,3 @@
-import React from 'react';
 import { Result, Card } from 'antd';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
