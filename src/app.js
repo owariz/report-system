@@ -58,14 +58,19 @@ app.use(passport.initialize());
 // API Routes
 app.use('/api/v1', apiRoutes);
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '..', 'client/dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'client/dist/index.html'));
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+// This is for client-side routing.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'), (err) => {
+    if (err) {
+      res.status(500).send(err);
+    }
   });
-}
+});
 
 app.use(errorHandler);
 

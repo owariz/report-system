@@ -1,4 +1,14 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.unified
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    depends_on:
+      - db
   # backend:
   #   build: .
   #   ports:
