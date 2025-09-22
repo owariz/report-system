@@ -182,17 +182,17 @@ export default function DashboardPage() {
       </Typography.Title>
       
       {/* --- Main Stats --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard title="รายงานทั้งหมด" value={summary?.totalReports || 0} prefix={<FileTextOutlined />} color="#1677ff" />
         <StatCard title="รายงานเดือนนี้" value={reportsThisMonth} prefix={<BarChartOutlined />} color="#1677ff" />
         <StatCard title="รายงานวันนี้" value={reportsToday} prefix={<PieChartOutlined />} color="#1677ff" />
         <StatCard title="ผู้ใช้ทั้งหมด" value={userStats?.totalUsersCount || 0} prefix={<UsergroupAddOutlined />} color="#3f8600" />
         <StatCard title="ผู้ใช้ใหม่ (7 วัน)" value={userStats?.newUsersCount || 0} prefix={<UserOutlined />} color="#3f8600" />
-        <StatCard title="คะแนนเฉลี่ย" value={userStats?.averageScore || 0} precision={2} prefix={<ArrowUpOutlined />} suffix="pts" color="#faad14" />
+        <StatCard title="คะแนนเฉลี่ย" value={userStats?.averageScore.toFixed(2) || 0} precision={2} prefix={<ArrowUpOutlined />} suffix="pts" color="#faad14" />
       </div>
 
       {/* --- Charts --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card title="แนวโน้มจำนวนรายงาน (12 เดือนล่าสุด)">
           <div className="h-72">
             <Line data={trendChartData} options={chartOptions} />
@@ -209,7 +209,7 @@ export default function DashboardPage() {
           </div>
         </Card>
         <Card title="Top 5 ผู้ใช้ที่โดนหักคะแนนเยอะสุด">
-          <ul className="h-72 overflow-y-auto space-y-2">
+          <ul className="space-y-2 overflow-y-auto h-72">
             {(userStats?.usersWithMostDeductedPoints || []).map((user, index) => (
               <li key={index}>
                 <Typography.Text>{user.name || 'N/A'} (SID: {user.sid || 'N/A'}): </Typography.Text>
