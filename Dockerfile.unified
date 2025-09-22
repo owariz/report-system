@@ -6,6 +6,12 @@ RUN npm install
 COPY client/ ./
 RUN npm run build
 
+# Verify that the build was successful and created the necessary files
+RUN if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then \
+      echo "Vite build failed: 'dist' directory or 'dist/index.html' not found." >&2; \
+      exit 1; \
+    fi
+
 # Stage 2: Build the final image with the backend and the built client
 FROM node:18-alpine
 WORKDIR /app
