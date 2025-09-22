@@ -1,16 +1,16 @@
 import { useState, useMemo } from 'react';
-import { Layout, Menu, Breadcrumb, Alert, Avatar, Dropdown, Space, Typography, Spin } from 'antd';
+import { Layout, Menu, Breadcrumb, Alert, Avatar, Dropdown, Space, Typography, Spin, Button } from 'antd';
 import {
   FileOutlined,
   PieChartOutlined,
   TeamOutlined,
   UserOutlined,
-  ToolOutlined,
-  FileTextOutlined,
   LogoutOutlined,
   SettingOutlined,
+  MenuOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
-import { Link, useLocation, Navigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 import MaintenancePage from '../../features/maintenance/MaintenancePage';
@@ -24,26 +24,19 @@ const breadcrumbNameMap = {
   '/reports': 'All Reports',
   '/users': 'Users',
   '/setting': 'Setting',
-  '/add': 'Developer',
+  '/admin/add-student': 'Add Student',
   '/add/json': 'Add JSON',
 };
 
 const RootLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout, settings, loadingSettings } = useAuth();
   const location = useLocation();
-  
-  const adminRoles = ['DEVELOPER', 'ADMIN', 'SUPERADMIN'];
-  const devRoles = ['DEVELOPER', 'SUPERADMIN'];
 
-  // Define roles that can bypass maintenance mode
   const maintenanceBypassRoles = ['ADMIN', 'SUPERADMIN', 'DEVELOPER'];
 
-  // ถ้าเปิด maintenance mode และ (user ไม่มี หรือ user ไม่ใช่ bypass) ให้แสดงเฉพาะหน้า MaintenancePage
-  if (
-    settings?.maintenanceMode &&
-    (!user || !maintenanceBypassRoles.includes(user.role))
-  ) {
+  if (settings?.maintenanceMode && (!user || !maintenanceBypassRoles.includes(user.role))) {
     return <MaintenancePage />;
   }
 
@@ -54,15 +47,7 @@ const RootLayout = ({ children }) => {
     { key: '/users', icon: <TeamOutlined />, label: <Link to="/users">Users</Link> },
     { key: '/setting', icon: <SettingOutlined />, label: <Link to="/setting">Setting</Link> },
     { key: '/admin/add-student', icon: <SettingOutlined />, label: <Link to="/admin/add-student">Add Student</Link> },
-    // (user && adminRoles.includes(user.role)) && {
-    //   key: 'sub-admin',
-    //   icon: <ToolOutlined />,
-    //   label: 'Developer',
-    //   children: [
-    //     { key: '/add/json', label: <Link to="/add/json">Add JSON</Link> },
-    //   ],
-    // },
-  ].filter(Boolean), [user, adminRoles]);
+  ].filter(Boolean), []);
 
   const userMenuItems = (
     <Menu>
@@ -99,34 +84,73 @@ const RootLayout = ({ children }) => {
     return <>{children}</>;
   }
 
+  const SiderContent = () => (
+    <>
+      <div className="h-16 flex items-center justify-center p-4">
+        <Text className="text-white text-lg font-bold overflow-hidden text-ellipsis whitespace-nowrap">
+          {loadingSettings ? <Spin size="small" /> : (collapsed ? settings?.siteName?.charAt(0) || 'R' : settings?.siteName || 'Report System')}
+        </Text>
+      </div>
+      <Menu theme="dark" defaultSelectedKeys={[location.pathname]} mode="inline" items={menuItems} />
+    </>
+  );
+
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
-        <div style={{ padding: '16px', textAlign: 'center', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: 'white', fontSize: '18px', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {loadingSettings ? <Spin size="small" /> : (collapsed ? settings?.siteName?.charAt(0) || 'R' : settings?.siteName || 'Report System')}
-          </Text>
-        </div>
-        <Menu theme="dark" defaultSelectedKeys={[location.pathname]} mode="inline" items={menuItems} />
+    <Layout className="min-h-screen">
+      {/* Desktop Sider */}
+      <Sider
+        className="hidden lg:block"
+        collapsible
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+      >
+        <SiderContent />
       </Sider>
+
+      {/* Mobile Drawer */}
+      <Sider
+        className="block lg:hidden"
+        trigger={null}
+        collapsible
+        collapsed={!mobileMenuOpen}
+        onCollapse={setMobileMenuOpen}
+        collapsedWidth={0}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100vh',
+          zIndex: 1000,
+        }}
+      >
+        <SiderContent />
+      </Sider>
+
       <Layout>
-        <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px', background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
-          <Breadcrumb>{breadcrumbItems}</Breadcrumb>
+        <Header className="flex justify-between items-center px-6 bg-white border-b border-gray-200">
+          <div className="flex items-center">
+            <Button
+              className="block lg:hidden mr-4"
+              icon={<MenuOutlined />}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            />
+            <Breadcrumb className="hidden md:block">{breadcrumbItems}</Breadcrumb>
+          </div>
           <Dropdown overlay={userMenuItems} trigger={['click']}>
-            <Space style={{ cursor: 'pointer' }}>
+            <Space className="cursor-pointer">
               <Avatar icon={<UserOutlined />} />
-              <Text>{user?.username || 'Guest'}</Text>
+              <Text className="hidden sm:inline">{user?.username || 'Guest'}</Text>
             </Space>
           </Dropdown>
         </Header>
-        <Content style={{ margin: '0 16px', display: 'flex', flexDirection: 'column' }}>
+        <Content className="m-0 md:m-4 flex flex-col">
           {settings?.announcementActive && (
             <Alert
               message={settings.announcementText}
               type={settings.announcementType || 'info'}
               banner
               closable
-              style={{ margin: '16px 0 0' }}
+              className="mt-4"
             />
           )}
           {user && !user.isVerified && (
@@ -136,14 +160,14 @@ const RootLayout = ({ children }) => {
               type="warning"
               showIcon
               closable
-              style={{ margin: '16px 0' }}
+              className="my-4"
             />
           )}
-          <div style={{ flex: 1, padding: 24, background: '#fff', borderRadius: 8, marginTop: '16px' }}>
+          <div className="flex-grow p-6 bg-white rounded-lg mt-4">
             {children}
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>
+        <Footer className="text-center">
           Report System ©{new Date().getFullYear()} Created by owariz
         </Footer>
       </Layout>
