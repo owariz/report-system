@@ -1,8 +1,8 @@
 module.exports = {
     apps: [
         {
-        name: "my-app",
-        script: "app.js",
+        name: "report-system",
+        script: "npm start",
         instances: "max", // ใช้ทุก core ที่มี
         exec_mode: "cluster", // โหมด cluster
             env: {
